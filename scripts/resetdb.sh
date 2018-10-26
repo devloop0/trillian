@@ -34,7 +34,7 @@ collect_vars() {
   [ -z ${MYSQL_PORT+x} ] && MYSQL_PORT="3306"
   [ -z ${MYSQL_DATABASE+x} ] && MYSQL_DATABASE="test"
   [ -z ${MYSQL_USER+x} ] && MYSQL_USER="test"
-  [ -z ${MYSQL_PASSWORD+x} ] && MYSQL_PASSWORD="zaphod"
+  [ -z ${MYSQL_PASSWORD+x} ] && MYSQL_PASSWORD=""
   [ -z ${MYSQL_USER_HOST+x} ] && MYSQL_USER_HOST="localhost"
   FLAGS=()
 
