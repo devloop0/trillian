@@ -22,7 +22,17 @@ CREATE TABLE IF NOT EXISTS Trees(
   PublicKey             MEDIUMBLOB NOT NULL,
   Deleted               BOOLEAN,
   DeleteTimeMillis      BIGINT,
+  PublicKeyMapId        BIGINT,
   PRIMARY KEY(TreeId)
+);
+
+CREATE TABLE IF NOT EXISTS PublicKeyMaps(
+  TreeId    BIGINT NOT NULL,
+  MapId     BIGINT NOT NULL,
+  Uuid      BIGINT NOT NULL,
+  PublicKey MEDIUMBLOB NOT NULL,
+  Indices   MEDIUMBLOB NOT NULL,
+  FOREIGN KEY(TreeId) REFERENCES Trees(TreeId) ON DELETE CASCADE
 );
 
 -- This table contains tree parameters that can be changed at runtime such as for

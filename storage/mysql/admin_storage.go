@@ -54,7 +54,8 @@ const (
 			PublicKey,
 			MaxRootDurationMillis,
 			Deleted,
-			DeleteTimeMillis
+			DeleteTimeMillis,
+			PublicKeyMapId
 		FROM Trees`
 	selectNonDeletedTrees = selectTrees + nonDeletedWhere
 	selectTreeByID        = selectTrees + " WHERE TreeId = ?"
@@ -156,6 +157,7 @@ func (t *adminTX) GetTree(ctx context.Context, treeID int64) (*trillian.Tree, er
 		return nil, err
 	}
 	defer stmt.Close()
+
 
 	// GetTree is an entry point for most RPCs, let's provide somewhat nicer error messages.
 	tree, err := storage.ReadTree(stmt.QueryRowContext(ctx, treeID))
@@ -276,8 +278,9 @@ func (t *adminTX) CreateTree(ctx context.Context, tree *trillian.Tree) (*trillia
 			UpdateTimeMillis,
 			PrivateKey,
 			PublicKey,
-			MaxRootDurationMillis)
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+			MaxRootDurationMillis,
+			PublicKeyMapId)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return nil, err
 	}
@@ -303,6 +306,7 @@ func (t *adminTX) CreateTree(ctx context.Context, tree *trillian.Tree) (*trillia
 		privateKey,
 		newTree.PublicKey.GetDer(),
 		rootDuration/time.Millisecond,
+		newTree.PublicKeyMapId,
 	)
 	if err != nil {
 		return nil, err
@@ -325,6 +329,7 @@ func (t *adminTX) CreateTree(ctx context.Context, tree *trillian.Tree) (*trillia
 			SequencingEnabled,
 			SequenceIntervalSeconds)
 		VALUES(?, ?, ?, ?)`)
+
 	if err != nil {
 		return nil, err
 	}

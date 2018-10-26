@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS trees (
   public_key               BYTEA NOT NULL, 
   deleted                  BOOLEAN, 
   delete_time_millis       BIGINT, 
+  public_key_map_id        BIGINT,
   PRIMARY KEY(tree_id) 
 ); 
 
