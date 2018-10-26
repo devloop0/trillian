@@ -4,6 +4,10 @@ import numpy as np
 
 import sys
 
+"""
+    File dedicating to creating a dataset to initialize the log with.
+"""
+
 
 USER_COUNT = 100 #Number of distinct users to create. If None users will be
                  #created until the max leaf total is reached and the previous
