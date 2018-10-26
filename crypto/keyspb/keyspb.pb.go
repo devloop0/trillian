@@ -201,7 +201,7 @@ func _Specification_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
-// / ECDSA defines parameters for an ECDSA key.
+/// ECDSA defines parameters for an ECDSA key.
 type Specification_ECDSA struct {
 	// The elliptic curve to use.
 	// Optional. If not set, the default curve will be used.
