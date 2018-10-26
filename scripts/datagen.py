@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import numpy as np
-
 import sys
 
 """
@@ -41,6 +40,8 @@ class Tree:
 
     def __init__ (self):
         self.users = []
+        self.id = random_64s (4)
+        self.counts = []
         self.generate_initial_tree ()
 
 
@@ -57,24 +58,43 @@ class Tree:
                 count = 0
                 while True:
                     new_user = User ()
+                    old_count = count
                     count += new_user.leaf_count ()
                     if count <= MAX_LEAF_COUNT:
                         self.users.append (new_user)
+                        self.counts.append ((old_count, count))
                     else:
                         break
         elif MAX_LEAF_COUNT is None:
+            count = 0
             for i in range (USER_COUNT):
-                self.users.append (User ())
+                new_user = User ()
+                old_count = count
+                count += new_user.leaf_count ()
+                self.users.append (new_user)
+                self.counts.append ((old_count, count))
         else:
             count = 0
             for i in range (USER_COUNT):
                 new_user = User ()
+                old_count = count
                 count += new_user.leaf_count ()
                 if count <= MAX_LEAF_COUNT:
                     self.users.append (new_user)
+                    self.counts.append ((old_count, count))
                 else:
                     break
 
+    """
+        Selects a random leaf uniformly from the available leaves. Returns a
+        tuple of the user, the public key, and the identifier.
+    """
+    def get_random_leaf (self):
+        index = np.random.randint (low=0, high=self.counts[-1][1])
+        user_num = self.count_search (index)
+        user = self.users[user_num]
+        leaf = user.nodes[index - self.counts[user_num][0]]
+        return (user.id, leaf.key, leaf.identifier)
 
     """
         Prints out all the leaves in the tree as a many lines of maps from
@@ -84,6 +104,24 @@ class Tree:
         for user in self.users:
             user.print_leaves ()
             print ()
+
+    """
+        Locates the index of the user with that holds the ith leaf.
+    """
+    def count_search (self, i):
+        low = 0
+        high = len (self.counts)
+        while high - low > 1:
+            middle = (high + low) // 2
+            count_pair = self.counts[middle]
+            if count_pair[0] <= i < count_pair[1]:
+                return middle
+            elif count_pair[1] <= i:
+                low = middle + 1
+            else:
+                high = middle
+        return low
+
 
 """
     Class which holds the information about a user and its associated leaves.
@@ -178,7 +216,7 @@ def error_and_exit (msg):
 """
 def main ():
     if len(sys.argv) != 1:
-        error_and_exit ("This program does not accept any arguments\n")
+        error_and_exit ("This program does not accept any arguments")
     t = Tree()
     t.print_leaves ()
 
