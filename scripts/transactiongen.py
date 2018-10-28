@@ -83,7 +83,7 @@ class Transaction:
         if self.type == TransactionType.ERROR:
             error_and_exit ("Invalid transaction type.")
         else:
-            print ("{}, {}, {}, {}, {}".format (self.type.value, self.tid, self.user, self.pk, self.id))
+            print ("{},{},{},{},{}".format (self.type.value, self.tid, self.user, self.pk, self.id))
 
 
 
