@@ -44,6 +44,17 @@ class Tree:
         self.counts = []
         self.generate_initial_tree ()
 
+    """
+        Returns a list of all users.
+    """
+    def get_users (self):
+        return self.users
+
+    """
+        Returns the id of the tree.
+    """
+    def get_id (self):
+        return self.id
 
     """
         Generates the initial tree for the user. It relies on the global
@@ -144,6 +155,18 @@ class User:
             self.nodes.append (Node (pk[i]))
 
     """
+        Returns a list of all nodes associated with the user.
+    """
+    def get_nodes (self):
+        return self.nodes
+
+    """
+        Returns the user id
+    """
+    def get_id (self):
+        return self.id
+    
+    """
         Computes the number of leaves the user maintains through sampling from
         a poisson distribution.
     """
@@ -190,6 +213,17 @@ class Node:
     def print_contents (self):
         print ("(" + str (self.key) + ", " + str (self.identifier) + ")", end="")
 
+    """
+        Returns the public key.
+    """
+    def get_key (self):
+        return self.key
+
+    """
+        Returns the identifier.
+    """
+    def get_id (self):
+        return self.identifier
 
 """
     Helper function to produce a random value by concatenating
