@@ -131,7 +131,7 @@ def main ():
     elif len (sys.argv) == 2:
         tid = int (sys.argv[1])
     else:
-        tid = datagen.random_64s (4)
+        tid = datagen.random_64s (1)
     t = datagen.Tree (tid)
     init_trxns = generate_init_transaction_list (t)
     trxns = generate_transaction_list (t)

@@ -251,7 +251,7 @@ def error_and_exit (msg):
 def main ():
     if len(sys.argv) != 1:
         error_and_exit ("This program does not accept any arguments")
-    t = Tree(random_64s (4))
+    t = Tree(random_64s (1))
     t.print_leaves ()
 
 if __name__ == "__main__":
