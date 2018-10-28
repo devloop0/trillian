@@ -75,7 +75,7 @@ class Transaction:
         Prints a transaction in a form that can be viewed as a database table.
         The table is a form of comma separated values in the form:
 
-                        TYPE | USER | PK | IDENTIFIER
+                       TYPE | TID | USER | PK | IDENTIFIER
 
         where the TYPE is 1 for read and 2 for write.
     """
@@ -83,7 +83,7 @@ class Transaction:
         if self.type == TransactionType.ERROR:
             error_and_exit ("Invalid transaction type.")
         else:
-            print ("{}, {}, {}, {}".format (self.type.value, self.user, self.pk, self.id))
+            print ("{}, {}, {}, {}, {}".format (self.type.value, self.tid, self.user, self.pk, self.id))
 
 
 
@@ -125,9 +125,14 @@ def generate_transaction_list (t):
     and print it.
 """
 def main ():
-    if len (sys.argv) != 1:
-        error_and_exit ("This program does not accept any arguments.")
-    t = datagen.Tree ()
+    tid = None
+    if len (sys.argv) > 2:
+        error_and_exit ("This program takes at most 1 argument, the tree id.")
+    elif len (sys.argv) == 2:
+        tid = int (sys.argv[1])
+    else:
+        tid = datagen.random_64s (4)
+    t = datagen.Tree (tid)
     init_trxns = generate_init_transaction_list (t)
     trxns = generate_transaction_list (t)
     for trxn in init_trxns:

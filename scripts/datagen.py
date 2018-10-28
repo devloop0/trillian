@@ -38,9 +38,9 @@ KEY_SIZE = 32 #Number of 64 bit values in any key
 """
 class Tree:
 
-    def __init__ (self):
+    def __init__ (self, tid):
         self.users = []
-        self.id = random_64s (4)
+        self.id = tid
         self.counts = []
         self.generate_initial_tree ()
 
@@ -251,7 +251,7 @@ def error_and_exit (msg):
 def main ():
     if len(sys.argv) != 1:
         error_and_exit ("This program does not accept any arguments")
-    t = Tree()
+    t = Tree(random_64s (4))
     t.print_leaves ()
 
 if __name__ == "__main__":
