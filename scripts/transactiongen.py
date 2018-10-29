@@ -15,8 +15,6 @@ import sys, datagen
 
 NUM_TRANSACTIONS = 1000 #Number of transactions to run at a given time.
 
-WRITE_PROBABILITY = 0.2 #Percentage of transactions that should be writes.
-
 
 """
     Enum class used to distinguish between transactions which READ
@@ -26,6 +24,24 @@ class TransactionType (Enum):
     ERROR = 0
     READ = 1
     WRITE = 2
+
+CURR_STATE = TransactionType.READ #Variable that tells which Markov state the
+                                  #system is currently in. The two states are
+                                  #read in which the most recent transaction
+                                  #was a read and makes further reads more
+                                  #likely or a write which allows for
+                                  #simulating bursty write behavior.
+
+WRITE_PROBABILITY =  [0.1, 0.7]  #Percentage of transactions that should be
+                                 #writes for each of the two states. The first
+                                 #state is the read state and the second is
+                                 #the write state.
+
+def get_write_probability ():
+    return WRITE_PROBABILITY [CURR_STATE.value - 1]
+
+def update_state (state):
+    CURR_STATE = state
 
 """
     Class used to hold the basic information for a transaction.
@@ -41,21 +57,24 @@ class Transaction:
             self.tid = t.get_id ()
             self.type = TransactionType.ERROR
             self.set_transaction_type ()
-            self.user, self.pk, self.id = t.get_random_leaf ()
+            self.user, self.oldpk, self.id = t.get_random_leaf ()
+            if self.type == TransactionType.WRITE:
+                self.newpk = datagen.random_64s (datagen.KEY_SIZE)
+                t.update_pk (self.user, self.oldpk, self.newpk)
+            else:
+                self.newpk = ""
 
     """
-        Constructor used to generate a transaction for a particular leaf.
-        If the transaction type is an error or unspecified the type of transaction
-        will be random.
+        Constructor used to generate a write transaction for a particular leaf.
+        This transaction is associated with creating a leaf.
     """
-    def configure_transaction (self, tid, user_id, pk, identifier, trx_type = TransactionType.ERROR):
+    def configure_write_transaction (self, tid, user_id, pk, identifier):
         self.tid = tid
         self.user = user_id
-        self.pk = pk
+        self.oldpk = ""
         self.id = identifier
-        self.type = trx_type
-        if trx_type == TransactionType.ERROR:
-            self.set_transaction_type ()
+        self.type = TransactionType.WRITE
+        self.newpk = pk
 
 
     """
@@ -75,15 +94,19 @@ class Transaction:
         Prints a transaction in a form that can be viewed as a database table.
         The table is a form of comma separated values in the form:
 
-                       TYPE | TID | USER | PK | IDENTIFIER
+                       TYPE | TID | USER | OLDPK | IDENTIFIER | NEWPK
 
         where the TYPE is 1 for read and 2 for write.
+
+        OLDPK is "" for any write which creates a leaf.
+
+        NEWPK is "" for all reads.
     """
     def print_transaction_as_row (self):
         if self.type == TransactionType.ERROR:
             error_and_exit ("Invalid transaction type.")
         else:
-            print ("{},{},{},{},{}".format (self.type.value, self.tid, self.user, self.pk, self.id))
+            print ("{},{},{},{},{},{}".format (self.type.value, self.tid, self.user, self.oldpk, self.id, self.newpk))
 
 
 
@@ -92,11 +115,13 @@ class Transaction:
         is a read or a write.
     """
     def set_transaction_type (self):
-         val = np.random.random ()
-         if val < WRITE_PROBABILITY:
-             self.type = TransactionType.WRITE
-         else:
-             self.type = TransactionType.READ
+        val = np.random.random ()
+        prob = get_write_probability ()
+        if val < prob:
+            self.type = TransactionType.WRITE
+        else:
+            self.type = TransactionType.READ
+        update_state (self.type)
 
 
 """
@@ -110,7 +135,7 @@ def generate_init_transaction_list (t):
         nodes = user.get_nodes ()
         for node in nodes:
             trxn = Transaction()
-            trxn.configure_transaction (t.get_id (), user.get_id (), node.get_key (), node.get_id (), TransactionType.WRITE)
+            trxn.configure_write_transaction (t.get_id (), user.get_id (), node.get_key (), node.get_id ())
             trxns.append (trxn)
     return trxns
 

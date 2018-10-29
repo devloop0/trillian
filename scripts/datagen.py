@@ -57,6 +57,27 @@ class Tree:
         return self.id
 
     """
+        Updates the public key for all users with the previous pk.
+    """
+    def update_pk (self, user_id, oldpk, newpk):
+        user = self.find_user (user_id)
+        nodes = user.get_nodes ()
+        for node in nodes:
+            if node.get_key () == oldpk:
+                node.update_key (newpk)
+
+    """
+        Finds the user with the given id. Returns None if the user
+        does not exist.
+    """
+    def find_user (self, user_id):
+        users = self.get_users ()
+        for user in users:
+            if user.get_id () == user_id:
+                return user
+        return None
+
+    """
         Generates the initial tree for the user. It relies on the global
         variables to select the number of users and similarly the number
         of overall leaves to generate.
@@ -224,6 +245,12 @@ class Node:
     """
     def get_id (self):
         return self.identifier
+
+    """
+        Updates the pk value to the value passed in.
+    """
+    def update_key (self, new_key):
+        self.key = new_key
 
 """
     Helper function to produce a random value by concatenating
