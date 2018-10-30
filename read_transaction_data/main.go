@@ -26,8 +26,9 @@ type tx struct {
 	txType int64
 	logId int64
 	userId string
-	publicKey string
+	oldPublicKey string
 	userIdentifier string
+	newPublicKey string
 }
 
 type UserData struct {
@@ -68,7 +69,6 @@ func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, t
 		if tx_data.txType != txWrite {
 			break
 		}
-
 		data := UserData{UserId: tx_data.userId, PublicKey: tx_data.publicKey, UserIdentifier: tx_data.userIdentifier}
 		j, err := json.Marshal(data)
 		if err != nil {
