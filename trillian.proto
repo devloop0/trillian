@@ -203,8 +203,6 @@ message Tree {
   // Time of tree deletion, if any.
   // Readonly.
   google.protobuf.Timestamp delete_time = 20;
-
-  int64 public_key_map_id = 21;
 }
 
 message SignedEntryTimestamp {

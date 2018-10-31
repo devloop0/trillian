@@ -55,7 +55,7 @@ func ReadTree(row Row) (*trillian.Tree, error) {
 
 	// Enums and Datetimes need an extra conversion step
 	var treeState, treeType, hashStrategy, hashAlgorithm, signatureAlgorithm string
-	var createMillis, updateMillis, maxRootDurationMillis, publicKeyMapId int64
+	var createMillis, updateMillis, maxRootDurationMillis int64
 	var displayName, description sql.NullString
 	var privateKey, publicKey []byte
 	var deleted sql.NullBool
@@ -76,7 +76,6 @@ func ReadTree(row Row) (*trillian.Tree, error) {
 		&maxRootDurationMillis,
 		&deleted,
 		&deleteMillis,
-		&publicKeyMapId,
 	)
 	if err != nil {
 		return nil, err

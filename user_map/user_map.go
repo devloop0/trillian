@@ -1,3 +1,5 @@
+package UserMap
+
 type MapKey struct {
 	TreeId int64
 	UserId string

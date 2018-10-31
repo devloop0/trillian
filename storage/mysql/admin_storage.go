@@ -54,8 +54,7 @@ const (
 			PublicKey,
 			MaxRootDurationMillis,
 			Deleted,
-			DeleteTimeMillis,
-			PublicKeyMapId
+			DeleteTimeMillis
 		FROM Trees`
 	selectNonDeletedTrees = selectTrees + nonDeletedWhere
 	selectTreeByID        = selectTrees + " WHERE TreeId = ?"
@@ -278,9 +277,8 @@ func (t *adminTX) CreateTree(ctx context.Context, tree *trillian.Tree) (*trillia
 			UpdateTimeMillis,
 			PrivateKey,
 			PublicKey,
-			MaxRootDurationMillis,
-			PublicKeyMapId)
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+			MaxRootDurationMillis)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return nil, err
 	}
@@ -306,8 +304,8 @@ func (t *adminTX) CreateTree(ctx context.Context, tree *trillian.Tree) (*trillia
 		privateKey,
 		newTree.PublicKey.GetDer(),
 		rootDuration/time.Millisecond,
-		newTree.PublicKeyMapId,
 	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -333,6 +331,7 @@ func (t *adminTX) CreateTree(ctx context.Context, tree *trillian.Tree) (*trillia
 	if err != nil {
 		return nil, err
 	}
+
 	defer insertControlStmt.Close()
 	_, err = insertControlStmt.ExecContext(
 		ctx,

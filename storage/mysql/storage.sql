@@ -22,13 +22,11 @@ CREATE TABLE IF NOT EXISTS Trees(
   PublicKey             MEDIUMBLOB NOT NULL,
   Deleted               BOOLEAN,
   DeleteTimeMillis      BIGINT,
-  PublicKeyMapId        BIGINT,
   PRIMARY KEY(TreeId)
 );
 
 CREATE TABLE IF NOT EXISTS PublicKeyMaps(
   TreeId    BIGINT NOT NULL,
-  MapId     BIGINT NOT NULL,
   UserId      BIGINT NOT NULL,
   PublicKey MEDIUMBLOB NOT NULL,
   Indentifiers   MEDIUMBLOB NOT NULL,
