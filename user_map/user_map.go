@@ -11,6 +11,13 @@ type UserData struct {
 	UserIdentifier string
 }
 
+const (
+
+	searchMap = "SELECT TreeId, UserId, PublicKey, Identifiers FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
+	addMap = "INSERT INTO PublicKeyMaps(?,?,?,?,?) VALUES"
+	deleteMap "DELETE FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
+)
+
 /*
 	Composes the MapKey from the UserData it seeks to update and the id
 	for the tree being used.
