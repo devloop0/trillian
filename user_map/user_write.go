@@ -1,30 +1,15 @@
 package UserMap
 
-type MapKey struct {
-	TreeId int64
-	UserId string
-	PublicKey string
-}
+import (
+	"context"
+	"github.com/google.com/trillian"
+)
 
-type UserData struct {
-	UserId string
-	PublicKey string
-	UserIdentifier string
-}
+func WriteTransaction(ctx context.Context, client *trillian.TrillianLogClient,
+	logId int64, userData []*UserData, newPublicKey string) error {
+	//GatherNodes(ctx, client, userData)
 
-type UserLeafData struct {
-	PublicKey string
-	UserIdentifier string
-}
+	//UpdateMap(userData, logId, newPublicKey)
 
-func CreateMapKey () {
-
-}
-
-/*	Takes in a pointer to UserData that needs to be updated and finds
-	all other nodes that need to be updated. Returns a list of all 
-	UserData nodes that will need to be updated and errors if no map
-	exists.
-*/
-func GatherNodes (datum *UserData) []*UserData, error  {
+	return nil
 }
