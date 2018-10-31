@@ -1166,7 +1166,6 @@ not created dynamically.
 | update_time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | Time of last tree update. Readonly (automatically assigned on updates). |
 | deleted | [bool](#bool) |  | If true, the tree has been deleted. Deleted trees may be undeleted during a certain time window, after which they&#39;re permanently deleted (and unrecoverable). Readonly. |
 | delete_time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | Time of tree deletion, if any. Readonly. |
-| public_key_map_id | [int64](#int64) |  |  |
 
 
 

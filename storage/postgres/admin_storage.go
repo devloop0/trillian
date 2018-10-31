@@ -50,8 +50,7 @@ const (
 		public_key,
 		max_root_duration_millis,
 		deleted,
-		delete_time_millis,
-		public_key_map_id
+		delete_time_millis
 	FROM trees`
 	selectTreeByID = selectTrees + " WHERE tree_id = $1"
 

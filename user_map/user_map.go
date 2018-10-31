@@ -1,3 +1,5 @@
+package UserMap
+
 type MapKey struct {
 	LogId int64
 	UserId string
