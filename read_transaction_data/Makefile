@@ -1,4 +1,4 @@
-all: setup initialize
+all: setup initialize generate_data
 
 initialize: initialize_log_server initialize_log_signer initialize_log_id
 
@@ -8,9 +8,11 @@ clean: delete
 	killall ../trillian_log_server
 	killall ../trillian_log_signer
 	rm -f data/transaction_data data/logid
+	rm read_transaction_data
 
 setup:
 	mkdir -p data
+	go build
 
 initialize_log_server: 
 	../trillian_log_server -rpc_endpoint "localhost:8090" -http_endpoint "localhost:8091" &
@@ -25,4 +27,8 @@ initialize_log_id:
 delete_log_id:
 	go run ../cmd/deletetree/main.go --admin_server "localhost:8090" --log_id=`cat data/logid`
 
-.PHONY: all initialize delete setup initialize_log_server initialize_log_singer initialize_log_id delete_log_id clean
+generate_data:
+	sleep 2
+	../scripts/transactiongen.py `cat data/logid` > data/transaction_data
+
+.PHONY: all initialize delete setup initialize_log_server initialize_log_singer initialize_log_id delete_log_id clean generate_data

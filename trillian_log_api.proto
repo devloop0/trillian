@@ -41,6 +41,14 @@ service TrillianLog {
       };
     }
 
+    // Adds a single leaf to the queue.
+    rpc QueueUserLeaf (QueueLeafRequest) returns (QueueLeafResponse) {
+      option (google.api.http) = {
+        post: "/v1beta1/logs/{log_id}/leaves"
+        body: "*"
+      };
+    }
+
     // Adds a single leaf with an assigned sequence number.
     // Warning: This RPC is under development, don't use it.
     rpc AddSequencedLeaf (AddSequencedLeafRequest) returns (AddSequencedLeafResponse) {

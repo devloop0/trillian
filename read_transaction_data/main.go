@@ -33,8 +33,9 @@ type tx struct {
 
 type UserData struct {
 	UserId string
-	PublicKey string
+	OldPublicKey string
 	UserIdentifier string
+	NewPublicKey string
 }
 
 func readTransactionData(initializeFile string) ([]tx, error) {
@@ -57,9 +58,10 @@ func readTransactionData(initializeFile string) ([]tx, error) {
 			return ret, err
 		}
 		userId := record[2]
-		publicKey := record[3]
+		oldPublicKey := record[3]
 		userIdentifier := record[4]
-		ret = append(ret, tx{txType: txType, logId: logId, userId: userId, publicKey: publicKey, userIdentifier: userIdentifier})
+		newPublicKey := record[5]
+		ret = append(ret, tx{txType: txType, logId: logId, userId: userId, oldPublicKey: oldPublicKey, userIdentifier: userIdentifier, newPublicKey: newPublicKey})
 	}
 	return ret, nil
 }
@@ -69,7 +71,7 @@ func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, t
 		if tx_data.txType != txWrite {
 			break
 		}
-		data := UserData{UserId: tx_data.userId, PublicKey: tx_data.publicKey, UserIdentifier: tx_data.userIdentifier}
+		data := UserData{UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, UserIdentifier: tx_data.userIdentifier, NewPublicKey: tx_data.newPublicKey}
 		j, err := json.Marshal(data)
 		if err != nil {
 			return err
@@ -77,8 +79,9 @@ func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, t
 
 		tl := &trillian.LogLeaf{LeafValue: j}
 		q := &trillian.QueueLeafRequest{LogId: tx_data.logId, Leaf: tl}
-		r, err := client.QueueLeaf(ctx, q)
+		r, err := client.QueueUserLeaf(ctx, q)
 		if err != nil {
+			log.Fatal (err)
 			return err
 		}
 		c := codes.Code(r.QueuedLeaf.GetStatus().GetCode())

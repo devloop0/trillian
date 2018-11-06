@@ -215,3 +215,16 @@ func (m *MockTrillianLogServer) QueueLeaves(arg0 context.Context, arg1 *trillian
 func (mr *MockTrillianLogServerMockRecorder) QueueLeaves(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueueLeaves", reflect.TypeOf((*MockTrillianLogServer)(nil).QueueLeaves), arg0, arg1)
 }
+
+// QueueUserLeaf mocks base method
+func (m *MockTrillianLogServer) QueueUserLeaf(arg0 context.Context, arg1 *trillian.QueueLeafRequest) (*trillian.QueueLeafResponse, error) {
+	ret := m.ctrl.Call(m, "QueueUserLeaf", arg0, arg1)
+	ret0, _ := ret[0].(*trillian.QueueLeafResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// QueueUserLeaf indicates an expected call of QueueUserLeaf
+func (mr *MockTrillianLogServerMockRecorder) QueueUserLeaf(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueueUserLeaf", reflect.TypeOf((*MockTrillianLogServer)(nil).QueueUserLeaf), arg0, arg1)
+}

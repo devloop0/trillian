@@ -105,6 +105,30 @@ func (t *TrillianLogRPCServer) QueueLeaf(ctx context.Context, req *trillian.Queu
 	return &trillian.QueueLeafResponse{QueuedLeaf: queueRsp.QueuedLeaves[0]}, nil
 }
 
+// QueueLeaf submits one Userleaf to the queue. NICK 
+func (t *TrillianLogRPCServer) QueueUserLeaf(ctx context.Context, req *trillian.QueueLeafRequest) (*trillian.QueueLeafResponse, error) {
+	ctx, span := spanFor(ctx, "QueueLeaf")
+	defer span.End()
+	if err := validateLogLeaf(req.Leaf, "QueueUserLeafRequest.Leaf"); err != nil {
+		return nil, err
+	}
+
+	queueReq := &trillian.QueueLeavesRequest{
+		LogId:  req.LogId,
+		Leaves: []*trillian.LogLeaf{req.Leaf},
+	}
+	queueRsp, err := t.QueueLeaves(ctx, queueReq)
+	if err != nil {
+		return nil, err
+	}
+	if queueRsp == nil {
+		return nil, status.Errorf(codes.Internal, "missing response")
+	}
+	if len(queueRsp.QueuedLeaves) != 1 {
+		return nil, status.Errorf(codes.Internal, "unexpected count of leaves %d", len(queueRsp.QueuedLeaves))
+	}
+	return &trillian.QueueLeafResponse{QueuedLeaf: queueRsp.QueuedLeaves[0]}, nil
+}
 func hashLeaves(leaves []*trillian.LogLeaf, hasher hashers.LogHasher) error {
 	for _, leaf := range leaves {
 		var err error
