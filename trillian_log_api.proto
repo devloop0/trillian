@@ -41,7 +41,7 @@ service TrillianLog {
       };
     }
 
-    // Adds a single leaf to the queue.
+    // Adds a single User leaf to the queue. NICK
     rpc QueueUserLeaf (QueueLeafRequest) returns (QueueLeafResponse) {
       option (google.api.http) = {
         post: "/v1beta1/logs/{log_id}/leaves"

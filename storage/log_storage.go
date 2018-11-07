@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/google/trillian"
+	"github.com/google/trillian/userTypes"
 )
 
 // ReadOnlyLogTX provides a read-only view into log data.
@@ -75,6 +76,14 @@ type LogTreeTX interface {
 
 	// StoreSignedLogRoot stores a freshly created SignedLogRoot.
 	StoreSignedLogRoot(ctx context.Context, root trillian.SignedLogRoot) error
+
+	//Used to handle any SQL storage associated with the map table NICK
+	SearchUserMap(ctx context.Context, key *UserTypes.MapKey) ([]string, error)
+
+	DeleteFromUserMap(ctx context.Context, key *UserTypes.MapKey) error
+
+	AddToUserMap(ctx context.Context, contents *UserTypes.MapContents) error
+
 
 	// QueueLeaves enqueues leaves for later integration into the tree.
 	// If error is nil, the returned slice of leaves will be the same size as the
@@ -144,6 +153,14 @@ type LogStorage interface {
 	// If f fails and returns an error, the storage implementation may optionally
 	// retry with a new transaction, and f MUST NOT keep state across calls.
 	ReadWriteTransaction(ctx context.Context, tree *trillian.Tree, f LogTXFunc) error
+
+
+	//Used to handle any SQL storage associated with the map table NICK
+	SearchUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) ([]string, error)
+
+	DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error
+
+	AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error
 
 	// QueueLeaves enqueues leaves for later integration into the tree.
 	// If error is nil, the returned slice of leaves will be the same size as the

@@ -1883,7 +1883,7 @@ const _ = grpc.SupportPackageIsVersion4
 type TrillianLogClient interface {
 	// Adds a single leaf to the queue.
 	QueueLeaf(ctx context.Context, in *QueueLeafRequest, opts ...grpc.CallOption) (*QueueLeafResponse, error)
-	// Adds a single leaf to the queue.
+	// Adds a single User leaf to the queue. NICK
 	QueueUserLeaf(ctx context.Context, in *QueueLeafRequest, opts ...grpc.CallOption) (*QueueLeafResponse, error)
 	// Adds a single leaf with an assigned sequence number.
 	// Warning: This RPC is under development, don't use it.
@@ -2071,7 +2071,7 @@ func (c *trillianLogClient) GetLeavesByHash(ctx context.Context, in *GetLeavesBy
 type TrillianLogServer interface {
 	// Adds a single leaf to the queue.
 	QueueLeaf(context.Context, *QueueLeafRequest) (*QueueLeafResponse, error)
-	// Adds a single leaf to the queue.
+	// Adds a single User leaf to the queue. NICK
 	QueueUserLeaf(context.Context, *QueueLeafRequest) (*QueueLeafResponse, error)
 	// Adds a single leaf with an assigned sequence number.
 	// Warning: This RPC is under development, don't use it.

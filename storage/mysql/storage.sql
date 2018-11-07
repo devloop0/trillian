@@ -26,10 +26,10 @@ CREATE TABLE IF NOT EXISTS Trees(
 );
 
 CREATE TABLE IF NOT EXISTS PublicKeyMaps(
-  TreeId    BIGINT NOT NULL,
-  UserId      BIGINT NOT NULL,
-  PublicKey MEDIUMBLOB NOT NULL,
-  Indentifiers   MEDIUMBLOB NOT NULL,
+  TreeId               BIGINT NOT NULL,
+  UserId               BIGINT NOT NULL,
+  PublicKey            MEDIUMBLOB NOT NULL,
+  Indentifiers         MEDIUMBLOB NOT NULL,
   FOREIGN KEY(TreeId) REFERENCES Trees(TreeId) ON DELETE CASCADE
 );
 

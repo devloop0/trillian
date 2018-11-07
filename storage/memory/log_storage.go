@@ -31,6 +31,7 @@ import (
 	"github.com/google/trillian/storage"
 	"github.com/google/trillian/storage/cache"
 	"github.com/google/trillian/types"
+	"github.com/google/trillian/userTypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -127,6 +128,19 @@ type readOnlyLogTX struct {
 func (m *memoryLogStorage) Snapshot(ctx context.Context) (storage.ReadOnlyLogTX, error) {
 	return &readOnlyLogTX{m.TreeStorage}, nil
 }
+
+func (m *memoryLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+func (m *memoryLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
+        return errors.New("Unimplemented")
+}
+
+func (m *memoryLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error {
+        return errors.New("Unimplemented")
+}
+
 
 func (t *readOnlyLogTX) Commit() error {
 	return nil
@@ -243,6 +257,20 @@ type logTreeTX struct {
 	root types.LogRootV1
 	slr  trillian.SignedLogRoot
 }
+
+/* NICK MAP STUFF. */
+func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, error) {
+	return nil, errors.New ("Unimplemented")
+}
+
+func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) error {
+	return errors.New ("Unimplemented")
+}
+
+func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) error {
+	return errors.New ("Unimplemented")
+}
+
 
 func (t *logTreeTX) ReadRevision(ctx context.Context) (int64, error) {
 	return int64(t.root.Revision), nil

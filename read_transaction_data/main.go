@@ -13,6 +13,7 @@ import (
 
 	"google.golang.org/grpc"
 	"github.com/google/trillian"
+	"github.com/google/trillian/userTypes"
 	"google.golang.org/grpc/codes"
 )
 
@@ -29,13 +30,6 @@ type tx struct {
 	oldPublicKey string
 	userIdentifier string
 	newPublicKey string
-}
-
-type UserData struct {
-	UserId string
-	OldPublicKey string
-	UserIdentifier string
-	NewPublicKey string
 }
 
 func readTransactionData(initializeFile string) ([]tx, error) {
@@ -71,7 +65,7 @@ func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, t
 		if tx_data.txType != txWrite {
 			break
 		}
-		data := UserData{UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, UserIdentifier: tx_data.userIdentifier, NewPublicKey: tx_data.newPublicKey}
+		data := UserTypes.UserData{UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, UserIdentifier: tx_data.userIdentifier, NewPublicKey: tx_data.newPublicKey}
 		j, err := json.Marshal(data)
 		if err != nil {
 			return err

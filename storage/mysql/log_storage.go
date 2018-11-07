@@ -34,6 +34,7 @@ import (
 	"github.com/google/trillian/storage"
 	"github.com/google/trillian/storage/cache"
 	"github.com/google/trillian/types"
+	"github.com/google/trillian/userTypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -44,8 +45,8 @@ const (
 	insertLeafDataSQL      = "INSERT INTO LeafData(TreeId,LeafIdentityHash,LeafValue,ExtraData,QueueTimestampNanos) VALUES" + valuesPlaceholder5
 	insertSequencedLeafSQL = "INSERT INTO SequencedLeafData(TreeId,LeafIdentityHash,MerkleLeafHash,SequenceNumber,IntegrateTimestampNanos) VALUES"
 
-	searchUserMap = "SELECT TreeId, UserId, PublicKey, Identifiers FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
-        insertUserMap = "INSERT INTO PublicKeyMaps(?,?,?,?,?) VALUES"
+	searchUserMap = "SELECT TreeId,UserId,PublicKey,Identifiers FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
+        insertUserMap = "INSERT INTO PublicKeyMaps(TreeId,UserId,PublicKey,Identifiers) VALUES(?,?,?,?)"
         deleteUserMap = "DELETE FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
 
 
@@ -276,6 +277,48 @@ func (m *mySQLLogStorage) ReadWriteTransaction(ctx context.Context, tree *trilli
 	return tx.Commit()
 }
 
+//Used to handle any SQL storage associated with the map table NICK
+func (m *mySQLLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, error) {
+	tx, err := m.beginInternal(ctx, tree)
+	if err != nil && err != storage.ErrTreeNeedsInit {
+		return nil, err
+	}
+	defer tx.Close()
+	results, err := tx.SearchUserMap(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	return results, tx.Commit()
+}
+
+func (m *mySQLLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
+	tx, err := m.beginInternal(ctx, tree)
+	if err != nil && err != storage.ErrTreeNeedsInit {
+		return err
+	}
+	defer tx.Close()
+	err = tx.DeleteFromUserMap(ctx, key)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (m *mySQLLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error {
+	tx, err := m.beginInternal(ctx, tree)
+	if err != nil && err != storage.ErrTreeNeedsInit {
+		return err
+	}
+	defer tx.Close()
+	err = tx.AddToUserMap(ctx, contents)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+//End of Nick's stuff
+
 func (m *mySQLLogStorage) AddSequencedLeaves(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, timestamp time.Time) ([]*trillian.QueuedLogLeaf, error) {
 	tx, err := m.beginInternal(ctx, tree)
 	if err != nil {
@@ -333,6 +376,41 @@ type logTreeTX struct {
 	root types.LogRootV1
 	slr  trillian.SignedLogRoot
 }
+
+/* NICK MAP STUFF. */
+func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, error) {
+	rows, err := t.tx.QueryContext (ctx, searchUserMap, key.LogId, key.UserId, key.PublicKey)
+	if (err != nil) {
+		return nil, err
+	}
+	identifiers := make([]string, 0)
+	var res *string = nil
+	err = rows.Scan(res)
+	if (err != nil) {
+		return nil, err
+	}
+	identifiers = append (identifiers, *res)
+	for ; rows.Next () ; {
+		rows.Scan(res)
+		if (err != nil) {
+			return nil, err
+		}
+		identifiers = append (identifiers, *res)
+	}
+	return identifiers, nil
+}
+
+func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) error {
+	_, err := t.tx.ExecContext (ctx, deleteUserMap, key.LogId, key.UserId, key.PublicKey)
+	return err
+}
+
+func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) error {
+	_, err := t.tx.ExecContext (ctx, insertUserMap, contents.LogId, contents.UserId, contents.PublicKey, contents.UserIdentifier)
+	return err
+}
+
+/* End of Nick's stuff. */
 
 func (t *logTreeTX) ReadRevision(ctx context.Context) (int64, error) {
 	return int64(t.root.Revision), nil

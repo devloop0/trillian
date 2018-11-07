@@ -28,6 +28,7 @@ import (
 	"github.com/google/trillian/trees"
 	"github.com/google/trillian/types"
 	"github.com/google/trillian/util"
+	"github.com/google/trillian/user_map"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -107,15 +108,26 @@ func (t *TrillianLogRPCServer) QueueLeaf(ctx context.Context, req *trillian.Queu
 
 // QueueLeaf submits one Userleaf to the queue. NICK 
 func (t *TrillianLogRPCServer) QueueUserLeaf(ctx context.Context, req *trillian.QueueLeafRequest) (*trillian.QueueLeafResponse, error) {
-	ctx, span := spanFor(ctx, "QueueLeaf")
+	ctx, span := spanFor(ctx, "QueueUserLeaf")
 	defer span.End()
 	if err := validateLogLeaf(req.Leaf, "QueueUserLeafRequest.Leaf"); err != nil {
 		return nil, err
 	}
-
+	key, identifier, newPk, err := UserMap.ExtractMapKey (req);
+	if err != nil {
+		return nil, err
+	}
+	tree, _, err := t.getTreeAndHasher(ctx, req.LogId, optsLogWrite)
+	if err != nil {
+		return nil, err
+	}
+	leaves, err := UserMap.GatherLeaves (ctx, tree, t.registry, key, identifier, newPk)
+	if (err != nil) {
+		return nil, err
+	}
 	queueReq := &trillian.QueueLeavesRequest{
 		LogId:  req.LogId,
-		Leaves: []*trillian.LogLeaf{req.Leaf},
+		Leaves: leaves,
 	}
 	queueRsp, err := t.QueueLeaves(ctx, queueReq)
 	if err != nil {
@@ -123,9 +135,6 @@ func (t *TrillianLogRPCServer) QueueUserLeaf(ctx context.Context, req *trillian.
 	}
 	if queueRsp == nil {
 		return nil, status.Errorf(codes.Internal, "missing response")
-	}
-	if len(queueRsp.QueuedLeaves) != 1 {
-		return nil, status.Errorf(codes.Internal, "unexpected count of leaves %d", len(queueRsp.QueuedLeaves))
 	}
 	return &trillian.QueueLeafResponse{QueuedLeaf: queueRsp.QueuedLeaves[0]}, nil
 }

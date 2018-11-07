@@ -22,6 +22,7 @@ import (
 	"sort"
 	"sync"
 	"time"
+	"errors"
 
 	"cloud.google.com/go/spanner"
 	"github.com/golang/glog"
@@ -32,6 +33,7 @@ import (
 	"github.com/google/trillian/storage/cache"
 	"github.com/google/trillian/storage/cloudspanner/spannerpb"
 	"github.com/google/trillian/types"
+	"github.com/google/trillian/userTypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -175,6 +177,19 @@ func (ls *logStorage) ReadWriteTransaction(ctx context.Context, tree *trillian.T
 	return err
 }
 
+func (ls *logStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, error) {
+        return nil, errors.New("Unimplemented")
+}
+
+func (ls *logStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
+        return errors.New("Unimplemented")
+}
+
+func (ls *logStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error {
+        return errors.New("Unimplemented")
+}
+
+
 func (ls *logStorage) SnapshotForTree(ctx context.Context, tree *trillian.Tree) (storage.ReadOnlyLogTreeTX, error) {
 	return ls.begin(ctx, tree, true /* readonly */, ls.ts.client.ReadOnlyTransaction())
 }
@@ -307,6 +322,19 @@ type logTX struct {
 	// UpdateSequencedLeaves.
 	dequeued map[string]*QueuedEntry
 }
+
+func (tx *logTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, error) {
+        return nil, errors.New ("Unimplemented")
+}
+
+func (tx *logTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) error {
+        return errors.New ("Unimplemented")
+}
+
+func (tx *logTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) error {
+        return errors.New ("Unimplemented")
+}
+
 
 func (tx *logTX) getLogStorageConfig() *spannerpb.LogStorageConfig {
 	return tx.config.(*spannerpb.LogStorageConfig)
