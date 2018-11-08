@@ -123,16 +123,16 @@ func main() {
 		}
 
 		if len(r.Leaves) == 0 {
-			log.Fatal("No progress made at leaf %d", n)
+			log.Fatalf("No progress made at leaf %d", n)
 		}
 
 		for m := 0; m < len(r.Leaves) && n < ts; n++ {
 			if r.Leaves[m] == nil {
-				log.Fatal("Could not read leaf at index %d", m)
+				log.Fatalf("Could not read leaf at index %d", m)
 			}
 
 			if r.Leaves[m].LeafIndex != n {
-				log.Fatal("Expected index %d got index %d", r.Leaves[m].LeafIndex, n)
+				log.Fatalf("Expected index %d got index %d", r.Leaves[m].LeafIndex, n)
 			}
 
 			fmt.Printf("%v\n", r.Leaves[m])

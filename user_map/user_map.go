@@ -35,7 +35,7 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 		}
 		identity := UserTypes.CreateIdentity(key.UserId, newPk, identifier)
 		contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier, identity)
-		glog.Errorf("New %s %s %s %s\n", key.UserId, newPk, identifier, identity)
+		//glog.Errorf("New %s %s %s %s\n", key.UserId, newPk, identifier, identity)
 		err = reg.LogStorage.AddToUserMap (ctx, tree, contents)
 		if err != nil {
 			return nil, err
@@ -63,7 +63,7 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 			}
 			leaves = append (leaves, newLeafData (data))
 			contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier, identity)
-			glog.Errorf("Updated %s %s %s %s\n", key.UserId, newPk, identifier, identity)
+			//glog.Errorf("Updated %s %s %s %s\n", key.UserId, newPk, identifier, identity)
 			err = reg.LogStorage.AddToUserMap (ctx, tree, contents)
 			if err != nil {
 				return nil, err

@@ -68,20 +68,12 @@ const leavesToInsert = 5
 const sequenceNumber int64 = 237
 
 //Nick's added tests
-func createFakeAddMap(ctx context.Context, db *sql.DB, TreeId int64, UserId int64, PublicKey string, Identifiers string, t *testing.T) {
-	_, err := db.ExecContext(ctx, insertUserMap, TreeId, UserId, PublicKey, Identifiers)
+func createFakeAddMap(ctx context.Context, db *sql.DB, TreeId int64, UserId string, PublicKey string, Identifiers string, Identity string, t *testing.T) {
+	_, err := db.ExecContext(ctx, insertUserMap, TreeId, UserId, PublicKey, Identifiers, Identity)
 	if err != nil {
 		t.Fatalf("Failed to create test element: %v", err)
 	}
 }
-
-func verifyMapContents(ctx, context.Context, db *sql.DB, TreeId int64, UserId int64, PublicKey string, Identifiers []string, t *testing.T) {
-	rows, err := db.ExecQuery(ctx, searchUserMap, TreeId, UserId, PublicKey)
-	if err != nil {
-		t.Fatalf("Failed to search the user map: %v")
-	}
-}
-
 
 // Tests that access the db should each use a distinct log ID to prevent lock contention when
 // run in parallel or race conditions / unexpected interactions. Tests that pass should hold
@@ -1416,10 +1408,11 @@ func TestMapFunctionality(t *testing.T) {
 	ctx := context.Background()
 	cleanTestDB(DB)
 	var TreeId int64 = 12345
-	var UserId int64 = 67890
+	var UserId string = "67890"
 	PublicKey := "cs61c"
 	Identifiers := "-tap"
-	createFakeAddMap (ctx, DB, TreeId, UserId, PublicKey, Identifiers, t)
+	Identity := "sdlkfjnsdf"
+	createFakeAddMap (ctx, DB, TreeId, UserId, PublicKey, Identifiers, Identity, t)
 }
 
 func ensureAllLeavesDistinct(leaves []*trillian.LogLeaf, t *testing.T) {
