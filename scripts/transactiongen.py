@@ -13,7 +13,7 @@ import sys, datagen
     identifier.
 """
 
-NUM_TRANSACTIONS = 1000 #Number of transactions to run at a given time.
+NUM_TRANSACTIONS = 2 #Number of transactions to run at a given time.
 
 
 """
@@ -32,7 +32,7 @@ CURR_STATE = TransactionType.READ #Variable that tells which Markov state the
                                   #likely or a write which allows for
                                   #simulating bursty write behavior.
 
-WRITE_PROBABILITY =  [0.1, 0.7]  #Percentage of transactions that should be
+WRITE_PROBABILITY =  [1.0, 1.0]  #Percentage of transactions that should be
                                  #writes for each of the two states. The first
                                  #state is the read state and the second is
                                  #the write state.

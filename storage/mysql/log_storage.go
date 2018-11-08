@@ -45,7 +45,7 @@ const (
 	insertLeafDataSQL      = "INSERT INTO LeafData(TreeId,LeafIdentityHash,LeafValue,ExtraData,QueueTimestampNanos) VALUES" + valuesPlaceholder5
 	insertSequencedLeafSQL = "INSERT INTO SequencedLeafData(TreeId,LeafIdentityHash,MerkleLeafHash,SequenceNumber,IntegrateTimestampNanos) VALUES"
 
-	searchUserMap = "SELECT TreeId,UserId,PublicKey,Identifiers FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
+	searchUserMap = "SELECT Identifiers FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
         insertUserMap = "INSERT INTO PublicKeyMaps(TreeId,UserId,PublicKey,Identifiers) VALUES(?,?,?,?)"
         deleteUserMap = "DELETE FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
 
@@ -380,22 +380,18 @@ type logTreeTX struct {
 /* NICK MAP STUFF. */
 func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, error) {
 	rows, err := t.tx.QueryContext (ctx, searchUserMap, key.LogId, key.UserId, key.PublicKey)
-	if (err != nil) {
+	defer rows.Close()
+	if err != nil {
 		return nil, err
 	}
 	identifiers := make([]string, 0)
-	var res *string = nil
-	err = rows.Scan(res)
-	if (err != nil) {
-		return nil, err
-	}
-	identifiers = append (identifiers, *res)
-	for ; rows.Next () ; {
-		rows.Scan(res)
-		if (err != nil) {
+	var res string
+	for rows.Next () {
+		err = rows.Scan(&res)
+		if err != nil {
 			return nil, err
 		}
-		identifiers = append (identifiers, *res)
+		identifiers = append (identifiers, res)
 	}
 	return identifiers, nil
 }
