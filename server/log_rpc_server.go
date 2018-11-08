@@ -106,11 +106,11 @@ func (t *TrillianLogRPCServer) QueueLeaf(ctx context.Context, req *trillian.Queu
 	return &trillian.QueueLeafResponse{QueuedLeaf: queueRsp.QueuedLeaves[0]}, nil
 }
 
-// QueueLeaf submits one Userleaf to the queue. NICK 
-func (t *TrillianLogRPCServer) QueueUserLeaf(ctx context.Context, req *trillian.QueueLeafRequest) (*trillian.QueueLeafResponse, error) {
-	ctx, span := spanFor(ctx, "QueueUserLeaf")
+// Writes a transaction of user leaves. NICK 
+func (t *TrillianLogRPCServer) UserWriteLeaves(ctx context.Context, req *trillian.QueueLeafRequest) (*trillian.UserLeavesResponse, error) {
+	ctx, span := spanFor(ctx, "UserWriteLeaves")
 	defer span.End()
-	if err := validateLogLeaf(req.Leaf, "QueueUserLeafRequest.Leaf"); err != nil {
+	if err := validateLogLeaf(req.Leaf, "UserWriteLeaves.Leaf"); err != nil {
 		return nil, err
 	}
 	key, identifier, newPk, err := UserMap.ExtractMapKey (req);
@@ -138,6 +138,27 @@ func (t *TrillianLogRPCServer) QueueUserLeaf(ctx context.Context, req *trillian.
 	}
 	return &trillian.QueueLeafResponse{QueuedLeaf: queueRsp.QueuedLeaves[0]}, nil
 }
+
+//Read any possible leaves associated with a user.
+func (t *TrillianLogRPCServer) UserReadLeaves(ctx context.Context, req *trillian.UserReadLeafRequest) (*trillian.UserLeavesResponse, error) {
+	ctx, span := spanFor(ctx, "UserReadLeaves")
+	defer span.End()
+	tree, _, err := t.getTreeAndHasher(ctx, req.LogId, optsLogWrite)
+	if err != nil {
+		return nil, err
+	}
+	keys, err := UserMap.GetKeys (ctx, tree, t.registry, req)
+	if err != nil {
+		return nil, err
+	}
+	for _, key := range keys {
+		hash := hashLeaves ()
+		leaves, err := t.GetLeavesByHash ()
+	}
+}
+
+//End of Nick's stuff
+
 func hashLeaves(leaves []*trillian.LogLeaf, hasher hashers.LogHasher) error {
 	for _, leaf := range leaves {
 		var err error

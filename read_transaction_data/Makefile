@@ -17,7 +17,7 @@ initialize_log_server:
 	../trillian_log_server -rpc_endpoint "localhost:8090" -http_endpoint "localhost:8091" &
 
 initialize_log_signer:
-	../trillian_log_signer --force_master -rpc_endpoint "localhost:8092" -http_endpoint "localhost:8093" -batch_size=1 &
+	../trillian_log_signer --force_master -rpc_endpoint "localhost:8092" -http_endpoint "localhost:8093" -batch_size=1 -sequencer_interval=1ms &
 
 initialize_log_id:
 	sleep 2
@@ -38,9 +38,9 @@ rebuild:
 initialize_data: initialize_log_id generate_data
 
 debug_log_server: 
-	../trillian_log_server -rpc_endpoint "localhost:8090" -http_endpoint "localhost:8091"
+	../trillian_log_server -rpc_endpoint "localhost:8090" -http_endpoint "localhost:8091" -logtostderr
 
 debug_log_signer:
-	../trillian_log_signer --force_master -rpc_endpoint "localhost:8092" -http_endpoint "localhost:8093" -batch_size=1
+	../trillian_log_signer --force_master -rpc_endpoint "localhost:8092" -http_endpoint "localhost:8093" -batch_size=1 -sequencer_interval=1ms -logtostderr
 
 .PHONY: all initialize delete setup initialize_log_server initialize_log_singer initialize_log_id delete_log_id clean generate_data rebuild initialize_data debug_log_server debug_log_signer

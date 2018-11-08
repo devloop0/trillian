@@ -35,12 +35,10 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 		}
 		identity := UserTypes.CreateIdentity(key.UserId, newPk, identifier)
 		contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier, identity)
-		glog.Errorf("New %s %s %s %s\n", key.UserId, newPk, identifier, identity)
 		err = reg.LogStorage.AddToUserMap (ctx, tree, contents)
 		if err != nil {
 			return nil, err
 		}
-		glog.Errorf("\n\n")
 		return []*trillian.LogLeaf{newLeafData (data)}, nil
 	} else {
 		identifiers, identities, err := reg.LogStorage.SearchUserMap (ctx, tree, key)
@@ -63,13 +61,19 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 			}
 			leaves = append (leaves, newLeafData (data))
 			contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier, identity)
-			glog.Errorf("Updated %s %s %s %s\n", key.UserId, newPk, identifier, identity)
 			err = reg.LogStorage.AddToUserMap (ctx, tree, contents)
 			if err != nil {
 				return nil, err
 			}
 		}
-		glog.Errorf("\n\n")
 		return leaves, nil
 	}
+}
+
+func GetKeys (ctx context.Context, tree *trillian.Tree, reg extension.Registry, request *trillian.UserReadLeafRequest) ([]string, error) {
+	keys, err := req.LogStorage.GetKeys (ctx, tree, request)
+	if err != nil {
+		return nil, err
+	}
+	return keys, nil
 }

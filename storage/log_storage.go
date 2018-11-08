@@ -162,6 +162,10 @@ type LogStorage interface {
 
 	AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error
 
+	GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error)
+	//End of Nick
+
+
 	// QueueLeaves enqueues leaves for later integration into the tree.
 	// If error is nil, the returned slice of leaves will be the same size as the
 	// input, and each entry will hold a passed-in leaf struct and a Status

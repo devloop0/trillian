@@ -36,6 +36,8 @@
     - [QueueLeavesRequest](#trillian.QueueLeavesRequest)
     - [QueueLeavesResponse](#trillian.QueueLeavesResponse)
     - [QueuedLogLeaf](#trillian.QueuedLogLeaf)
+    - [UserLeavesResponse](#trillian.UserLeavesResponse)
+    - [UserReadLeafRequest](#trillian.UserReadLeafRequest)
   
   
   
@@ -644,6 +646,38 @@ TODO(pavelkalinnikov): Consider renaming it to AddLogLeafResult or the like.
 
 
 
+
+<a name="trillian.UserLeavesResponse"></a>
+
+### UserLeavesResponse
+Struct used to return information from User requests. Nick
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| responses | [GetEntryAndProofResponse](#trillian.GetEntryAndProofResponse) | repeated |  |
+
+
+
+
+
+
+<a name="trillian.UserReadLeafRequest"></a>
+
+### UserReadLeafRequest
+Struct used to request information for User reads. Nick
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| log_id | [int64](#int64) |  |  |
+| UserId | [string](#string) |  |  |
+| DeviceId | [string](#string) |  |  |
+
+
+
+
+
  
 
  
@@ -664,7 +698,8 @@ operations such as obtaining tree leaves, inclusion/consistency proofs etc.
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
 | QueueLeaf | [QueueLeafRequest](#trillian.QueueLeafRequest) | [QueueLeafResponse](#trillian.QueueLeafResponse) | Adds a single leaf to the queue. |
-| QueueUserLeaf | [QueueLeafRequest](#trillian.QueueLeafRequest) | [QueueLeafResponse](#trillian.QueueLeafResponse) | Adds a single User leaf to the queue. NICK |
+| UserWriteLeaves | [QueueLeafRequest](#trillian.QueueLeafRequest) | [UserLeavesResponse](#trillian.UserLeavesResponse) | Adds User leaves to the queue per a write transaction. Returns the leaves added and the associated proofs. |
+| UserReadLeaves | [UserReadLeafRequest](#trillian.UserReadLeafRequest) | [UserLeavesResponse](#trillian.UserLeavesResponse) | Reads all user leaves with the given User &#43; Device ID and associated proofs. Nick |
 | AddSequencedLeaf | [AddSequencedLeafRequest](#trillian.AddSequencedLeafRequest) | [AddSequencedLeafResponse](#trillian.AddSequencedLeafResponse) | Adds a single leaf with an assigned sequence number. Warning: This RPC is under development, don&#39;t use it. |
 | GetInclusionProof | [GetInclusionProofRequest](#trillian.GetInclusionProofRequest) | [GetInclusionProofResponse](#trillian.GetInclusionProofResponse) | Returns inclusion proof for a leaf with a given index in a given tree. |
 | GetInclusionProofByHash | [GetInclusionProofByHashRequest](#trillian.GetInclusionProofByHashRequest) | [GetInclusionProofByHashResponse](#trillian.GetInclusionProofByHashResponse) | Returns inclusion proof for a leaf with a given identity hash in a given tree. |

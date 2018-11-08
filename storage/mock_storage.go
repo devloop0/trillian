@@ -8,6 +8,7 @@ import (
 	context "context"
 	gomock "github.com/golang/mock/gomock"
 	trillian "github.com/google/trillian"
+	userTypes "github.com/google/trillian/userTypes"
 	reflect "reflect"
 	time "time"
 )
@@ -282,6 +283,18 @@ func (mr *MockLogStorageMockRecorder) AddSequencedLeaves(arg0, arg1, arg2, arg3 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSequencedLeaves", reflect.TypeOf((*MockLogStorage)(nil).AddSequencedLeaves), arg0, arg1, arg2, arg3)
 }
 
+// AddToUserMap mocks base method
+func (m *MockLogStorage) AddToUserMap(arg0 context.Context, arg1 *trillian.Tree, arg2 *userTypes.MapContents) error {
+	ret := m.ctrl.Call(m, "AddToUserMap", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddToUserMap indicates an expected call of AddToUserMap
+func (mr *MockLogStorageMockRecorder) AddToUserMap(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToUserMap", reflect.TypeOf((*MockLogStorage)(nil).AddToUserMap), arg0, arg1, arg2)
+}
+
 // CheckDatabaseAccessible mocks base method
 func (m *MockLogStorage) CheckDatabaseAccessible(arg0 context.Context) error {
 	ret := m.ctrl.Call(m, "CheckDatabaseAccessible", arg0)
@@ -292,6 +305,18 @@ func (m *MockLogStorage) CheckDatabaseAccessible(arg0 context.Context) error {
 // CheckDatabaseAccessible indicates an expected call of CheckDatabaseAccessible
 func (mr *MockLogStorageMockRecorder) CheckDatabaseAccessible(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDatabaseAccessible", reflect.TypeOf((*MockLogStorage)(nil).CheckDatabaseAccessible), arg0)
+}
+
+// DeleteFromUserMap mocks base method
+func (m *MockLogStorage) DeleteFromUserMap(arg0 context.Context, arg1 *trillian.Tree, arg2 *userTypes.MapKey) error {
+	ret := m.ctrl.Call(m, "DeleteFromUserMap", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFromUserMap indicates an expected call of DeleteFromUserMap
+func (mr *MockLogStorageMockRecorder) DeleteFromUserMap(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromUserMap", reflect.TypeOf((*MockLogStorage)(nil).DeleteFromUserMap), arg0, arg1, arg2)
 }
 
 // QueueLeaves mocks base method
@@ -317,6 +342,19 @@ func (m *MockLogStorage) ReadWriteTransaction(arg0 context.Context, arg1 *trilli
 // ReadWriteTransaction indicates an expected call of ReadWriteTransaction
 func (mr *MockLogStorageMockRecorder) ReadWriteTransaction(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadWriteTransaction", reflect.TypeOf((*MockLogStorage)(nil).ReadWriteTransaction), arg0, arg1, arg2)
+}
+
+// SearchUserMap mocks base method
+func (m *MockLogStorage) SearchUserMap(arg0 context.Context, arg1 *trillian.Tree, arg2 *userTypes.MapKey) ([]string, error) {
+	ret := m.ctrl.Call(m, "SearchUserMap", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchUserMap indicates an expected call of SearchUserMap
+func (mr *MockLogStorageMockRecorder) SearchUserMap(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUserMap", reflect.TypeOf((*MockLogStorage)(nil).SearchUserMap), arg0, arg1, arg2)
 }
 
 // Snapshot mocks base method
@@ -381,6 +419,18 @@ func (mr *MockLogTreeTXMockRecorder) AddSequencedLeaves(arg0, arg1, arg2 interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSequencedLeaves", reflect.TypeOf((*MockLogTreeTX)(nil).AddSequencedLeaves), arg0, arg1, arg2)
 }
 
+// AddToUserMap mocks base method
+func (m *MockLogTreeTX) AddToUserMap(arg0 context.Context, arg1 *userTypes.MapContents) error {
+	ret := m.ctrl.Call(m, "AddToUserMap", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddToUserMap indicates an expected call of AddToUserMap
+func (mr *MockLogTreeTXMockRecorder) AddToUserMap(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToUserMap", reflect.TypeOf((*MockLogTreeTX)(nil).AddToUserMap), arg0, arg1)
+}
+
 // Close mocks base method
 func (m *MockLogTreeTX) Close() error {
 	ret := m.ctrl.Call(m, "Close")
@@ -403,6 +453,18 @@ func (m *MockLogTreeTX) Commit() error {
 // Commit indicates an expected call of Commit
 func (mr *MockLogTreeTXMockRecorder) Commit() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockLogTreeTX)(nil).Commit))
+}
+
+// DeleteFromUserMap mocks base method
+func (m *MockLogTreeTX) DeleteFromUserMap(arg0 context.Context, arg1 *userTypes.MapKey) error {
+	ret := m.ctrl.Call(m, "DeleteFromUserMap", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFromUserMap indicates an expected call of DeleteFromUserMap
+func (mr *MockLogTreeTXMockRecorder) DeleteFromUserMap(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromUserMap", reflect.TypeOf((*MockLogTreeTX)(nil).DeleteFromUserMap), arg0, arg1)
 }
 
 // DequeueLeaves mocks base method
@@ -544,6 +606,19 @@ func (m *MockLogTreeTX) Rollback() error {
 // Rollback indicates an expected call of Rollback
 func (mr *MockLogTreeTXMockRecorder) Rollback() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockLogTreeTX)(nil).Rollback))
+}
+
+// SearchUserMap mocks base method
+func (m *MockLogTreeTX) SearchUserMap(arg0 context.Context, arg1 *userTypes.MapKey) ([]string, error) {
+	ret := m.ctrl.Call(m, "SearchUserMap", arg0, arg1)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchUserMap indicates an expected call of SearchUserMap
+func (mr *MockLogTreeTXMockRecorder) SearchUserMap(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUserMap", reflect.TypeOf((*MockLogTreeTX)(nil).SearchUserMap), arg0, arg1)
 }
 
 // SetMerkleNodes mocks base method

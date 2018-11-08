@@ -48,7 +48,7 @@ const (
 	searchUserMap = "SELECT Identifiers, Identity FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
         insertUserMap = "INSERT INTO PublicKeyMaps(TreeId,UserId,PublicKey,Identifiers,Identity) VALUES(?,?,?,?,?)"
         deleteUserMap = "DELETE FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
-
+	getUserKeys = "SELECT PublicKey FROM PublicKeyMaps WHERE TreeID=? AND UserId=? AND Identifiers=?"
 
 	selectNonDeletedTreeIDByTypeAndStateSQL = `
 		SELECT TreeId FROM Trees
@@ -317,6 +317,19 @@ func (m *mySQLLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree,
 	return tx.Commit()
 }
 
+func (m *mySQLLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error) {
+	tx, err := m.beginInternal(ctx, tree)
+	if err != nil && err != storage.ErrTreeNeedsInit {
+		return err
+	}
+	defer tx.Close()
+	keys, err = tx.GetKeys(ctx, contents)
+	if err != nil {
+		return err
+	}
+	return keys, tx.Commit()
+}
+
 //End of Nick's stuff
 
 func (m *mySQLLogStorage) AddSequencedLeaves(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, timestamp time.Time) ([]*trillian.QueuedLogLeaf, error) {
@@ -380,10 +393,10 @@ type logTreeTX struct {
 /* NICK MAP STUFF. */
 func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, []string, error) {
 	rows, err := t.tx.QueryContext (ctx, searchUserMap, key.LogId, key.UserId, key.PublicKey)
-	defer rows.Close()
 	if err != nil {
 		return nil, nil, err
 	}
+	defer rows.Close()
 	identifiers := make([]string, 0)
 	identities := make([]string, 0)
 	var identifier, identity string
@@ -406,6 +419,25 @@ func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKe
 func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) error {
 	_, err := t.tx.ExecContext (ctx, insertUserMap, contents.LogId, contents.UserId, contents.PublicKey, contents.UserIdentifier, contents.Identity)
 	return err
+}
+
+func (t *logTreeTX) GetKeys (ctx context.Context, request *trillian.UserReadLeafRequest) ([]string, error) {
+	rows, err := t.tx.QueryContext (ctx, getUserKeys, request.LogId, request.UserId, request.DeviceId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	keys := make([]string, 0)
+	var key string
+	for rows.Next () {
+		err = rows.Scan(&key)
+		if err != nil {
+			return nil, err
+		}
+		keys = append (keys, key)
+	}
+	return keys, nil
+}
 }
 
 /* End of Nick's stuff. */

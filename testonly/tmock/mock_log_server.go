@@ -216,15 +216,28 @@ func (mr *MockTrillianLogServerMockRecorder) QueueLeaves(arg0, arg1 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueueLeaves", reflect.TypeOf((*MockTrillianLogServer)(nil).QueueLeaves), arg0, arg1)
 }
 
-// QueueUserLeaf mocks base method
-func (m *MockTrillianLogServer) QueueUserLeaf(arg0 context.Context, arg1 *trillian.QueueLeafRequest) (*trillian.QueueLeafResponse, error) {
-	ret := m.ctrl.Call(m, "QueueUserLeaf", arg0, arg1)
-	ret0, _ := ret[0].(*trillian.QueueLeafResponse)
+// UserReadLeaves mocks base method
+func (m *MockTrillianLogServer) UserReadLeaves(arg0 context.Context, arg1 *trillian.UserReadLeafRequest) (*trillian.UserLeavesResponse, error) {
+	ret := m.ctrl.Call(m, "UserReadLeaves", arg0, arg1)
+	ret0, _ := ret[0].(*trillian.UserLeavesResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// QueueUserLeaf indicates an expected call of QueueUserLeaf
-func (mr *MockTrillianLogServerMockRecorder) QueueUserLeaf(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueueUserLeaf", reflect.TypeOf((*MockTrillianLogServer)(nil).QueueUserLeaf), arg0, arg1)
+// UserReadLeaves indicates an expected call of UserReadLeaves
+func (mr *MockTrillianLogServerMockRecorder) UserReadLeaves(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserReadLeaves", reflect.TypeOf((*MockTrillianLogServer)(nil).UserReadLeaves), arg0, arg1)
+}
+
+// UserWriteLeaves mocks base method
+func (m *MockTrillianLogServer) UserWriteLeaves(arg0 context.Context, arg1 *trillian.QueueLeafRequest) (*trillian.UserLeavesResponse, error) {
+	ret := m.ctrl.Call(m, "UserWriteLeaves", arg0, arg1)
+	ret0, _ := ret[0].(*trillian.UserLeavesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserWriteLeaves indicates an expected call of UserWriteLeaves
+func (mr *MockTrillianLogServerMockRecorder) UserWriteLeaves(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserWriteLeaves", reflect.TypeOf((*MockTrillianLogServer)(nil).UserWriteLeaves), arg0, arg1)
 }

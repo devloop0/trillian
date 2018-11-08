@@ -41,8 +41,18 @@ service TrillianLog {
       };
     }
 
-    // Adds a single User leaf to the queue. NICK
-    rpc QueueUserLeaf (QueueLeafRequest) returns (QueueLeafResponse) {
+    // Adds User leaves to the queue per a write transaction. Returns the
+    // leaves added and the associated proofs.
+    rpc UserWriteLeaves (QueueLeafRequest) returns (UserLeavesResponse) {
+      option (google.api.http) = {
+        post: "/v1beta1/logs/{log_id}/leaves"
+        body: "*"
+      };
+    }
+
+    // Reads all user leaves with the given User + Device ID and associated
+    // proofs. Nick
+    rpc UserReadLeaves (UserReadLeafRequest) returns (UserLeavesResponse) {
       option (google.api.http) = {
         post: "/v1beta1/logs/{log_id}/leaves"
         body: "*"
@@ -165,6 +175,14 @@ message ChargeTo {
   //     a given intermediate/root.
   repeated string user = 1;
 }
+
+//Struct used to request information for User reads. Nick
+message UserReadLeafRequest {
+    int64 log_id = 1;
+    string UserId = 2;
+    string DeviceId = 3;
+}
+
 
 message QueueLeafRequest {
     int64 log_id = 1;
@@ -401,4 +419,9 @@ message Proof {
     int64 leaf_index = 1;
     reserved 2; // Contained internal node details, no longer provided to clients.
     repeated bytes hashes = 3;
+}
+
+//Struct used to return information from User requests. Nick
+message UserLeavesResponse {
+    repeated GetEntryAndProofResponse responses = 1;
 }
