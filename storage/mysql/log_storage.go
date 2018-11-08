@@ -35,6 +35,7 @@ import (
 	"github.com/google/trillian/storage/cache"
 	"github.com/google/trillian/types"
 	"github.com/google/trillian/userTypes"
+	//"github.com/google/trillian/networkSimulator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -380,6 +381,8 @@ type logTreeTX struct {
 /* NICK MAP STUFF. */
 func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, []string, error) {
 	rows, err := t.tx.QueryContext (ctx, searchUserMap, key.LogId, key.UserId, key.PublicKey)
+	// NetworkSimulator.DropPacket()
+	// NetworkSimulator.GenerateDelay()
 	defer rows.Close()
 	if err != nil {
 		return nil, nil, err
@@ -400,11 +403,15 @@ func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) (
 
 func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) error {
 	_, err := t.tx.ExecContext (ctx, deleteUserMap, key.LogId, key.UserId, key.PublicKey)
+	// NetworkSimulator.DropPacket()
+	// NetworkSimulator.GenerateDelay()
 	return err
 }
 
 func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) error {
 	_, err := t.tx.ExecContext (ctx, insertUserMap, contents.LogId, contents.UserId, contents.PublicKey, contents.UserIdentifier, contents.Identity)
+	// NetworkSimulator.DropPacket()
+	// NetworkSimulator.GenerateDelay()
 	return err
 }
 
@@ -527,6 +534,8 @@ func (t *logTreeTX) QueueLeaves(ctx context.Context, leaves []*trillian.LogLeaf,
 			return nil, fmt.Errorf("got invalid queue timestamp: %v", err)
 		}
 		_, err = t.tx.ExecContext(ctx, insertLeafDataSQL, t.treeID, leaf.LeafIdentityHash, leaf.LeafValue, leaf.ExtraData, qTimestamp.UnixNano())
+		// NetworkSimulator.DropPacket()
+		// NetworkSimulator.GenerateDelay()
 		insertDuration := time.Since(leafStart)
 		observe(queueInsertLeafLatency, insertDuration, label)
 		if isDuplicateErr(err) {
@@ -665,6 +674,8 @@ func (t *logTreeTX) AddSequencedLeaves(ctx context.Context, leaves []*trillian.L
 		_, err = t.tx.ExecContext(ctx, insertSequencedLeafSQL+valuesPlaceholder5,
 			t.treeID, leaf.LeafIdentityHash, leaf.MerkleLeafHash, leaf.LeafIndex, 0)
 		// TODO(pavelkalinnikov): Update IntegrateTimestamp on integrating the leaf.
+		// NetworkSimulator.DropPacket()
+		// NetworkSimulator.GenerateDelay()
 
 		if isDuplicateErr(err) {
 			res[i].Status = status.New(codes.FailedPrecondition, "conflicting LeafIndex").Proto()
@@ -716,6 +727,8 @@ func (t *logTreeTX) GetLeavesByIndex(ctx context.Context, leaves []int64) ([]*tr
 		return nil, err
 	}
 	stx := t.tx.StmtContext(ctx, tmpl)
+	// NetworkSimulator.DropPacket()
+	// NetworkSimulator.GenerateDelay()
 	defer stx.Close()
 
 	var args []interface{}
@@ -787,6 +800,8 @@ func (t *logTreeTX) GetLeavesByRange(ctx context.Context, start, count int64) ([
 
 	args := []interface{}{start, start + count, t.treeID}
 	rows, err := t.tx.QueryContext(ctx, selectLeavesByRangeSQL, args...)
+	// NetworkSimulator.DropPacket()
+	// NetworkSimulator.GenerateDelay()
 	if err != nil {
 		glog.Warningf("Failed to get leaves by range: %s", err)
 		return nil, err
@@ -947,6 +962,8 @@ func (t *logTreeTX) getLeavesByHashInternal(ctx context.Context, leafHashes [][]
 			glog.Warningf("LogID: %d Scan() %s = %s", t.treeID, desc, err)
 			return nil, err
 		}
+		// NetworkSimulator.DropPacket()
+		// NetworkSimulator.GenerateDelay()
 		var err error
 		leaf.QueueTimestamp, err = ptypes.TimestampProto(time.Unix(0, queueTS))
 		if err != nil {
