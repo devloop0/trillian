@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS PublicKeyMaps(
   TreeId               BIGINT NOT NULL,
   UserId               BIGINT NOT NULL,
   PublicKey            MEDIUMBLOB NOT NULL,
-  Indentifiers         MEDIUMBLOB NOT NULL,
-  FOREIGN KEY(TreeId) REFERENCES Trees(TreeId) ON DELETE CASCADE
+  Identifiers         MEDIUMBLOB NOT NULL,
+  PRIMARY KEY(TreeId)
 );
 
 -- This table contains tree parameters that can be changed at runtime such as for

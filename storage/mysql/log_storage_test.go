@@ -42,7 +42,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var allTables = []string{"Unsequenced", "TreeHead", "SequencedLeafData", "LeafData", "Subtree", "TreeControl", "Trees", "MapLeaf", "MapHead"}
+var allTables = []string{"Unsequenced", "TreeHead", "SequencedLeafData", "LeafData", "Subtree", "TreeControl", "Trees", "MapLeaf", "MapHead", "PublicKeyMaps"}
 
 // Must be 32 bytes to match sha256 length if it was a real hash
 var dummyHash = []byte("hashxxxxhashxxxxhashxxxxhashxxxx")
@@ -66,6 +66,22 @@ var someExtraData2 = []byte("Some even more extra data")
 
 const leavesToInsert = 5
 const sequenceNumber int64 = 237
+
+//Nick's added tests
+func createFakeAddMap(ctx context.Context, db *sql.DB, TreeId int64, UserId int64, PublicKey string, Identifiers string, t *testing.T) {
+	_, err := db.ExecContext(ctx, insertUserMap, TreeId, UserId, PublicKey, Identifiers)
+	if err != nil {
+		t.Fatalf("Failed to create test element: %v", err)
+	}
+}
+
+func verifyMapContents(ctx, context.Context, db *sql.DB, TreeId int64, UserId int64, PublicKey string, Identifiers []string, t *testing.T) {
+	rows, err := db.ExecQuery(ctx, searchUserMap, TreeId, UserId, PublicKey)
+	if err != nil {
+		t.Fatalf("Failed to search the user map: %v")
+	}
+}
+
 
 // Tests that access the db should each use a distinct log ID to prevent lock contention when
 // run in parallel or race conditions / unexpected interactions. Tests that pass should hold
@@ -1392,6 +1408,18 @@ func TestSortByLeafIdentityHash(t *testing.T) {
 		}
 	}
 
+}
+
+
+//Nick's test
+func TestMapFunctionality(t *testing.T) {
+	ctx := context.Background()
+	cleanTestDB(DB)
+	var TreeId int64 = 12345
+	var UserId int64 = 67890
+	PublicKey := "cs61c"
+	Identifiers := "-tap"
+	createFakeAddMap (ctx, DB, TreeId, UserId, PublicKey, Identifiers, t)
 }
 
 func ensureAllLeavesDistinct(leaves []*trillian.LogLeaf, t *testing.T) {
