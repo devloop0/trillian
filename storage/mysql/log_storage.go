@@ -45,8 +45,8 @@ const (
 	insertLeafDataSQL      = "INSERT INTO LeafData(TreeId,LeafIdentityHash,LeafValue,ExtraData,QueueTimestampNanos) VALUES" + valuesPlaceholder5
 	insertSequencedLeafSQL = "INSERT INTO SequencedLeafData(TreeId,LeafIdentityHash,MerkleLeafHash,SequenceNumber,IntegrateTimestampNanos) VALUES"
 
-	searchUserMap = "SELECT Identifiers FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
-        insertUserMap = "INSERT INTO PublicKeyMaps(TreeId,UserId,PublicKey,Identifiers) VALUES(?,?,?,?)"
+	searchUserMap = "SELECT Identifiers, Identity FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
+        insertUserMap = "INSERT INTO PublicKeyMaps(TreeId,UserId,PublicKey,Identifiers,Identity) VALUES(?,?,?,?,?)"
         deleteUserMap = "DELETE FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
 
 
@@ -278,17 +278,17 @@ func (m *mySQLLogStorage) ReadWriteTransaction(ctx context.Context, tree *trilli
 }
 
 //Used to handle any SQL storage associated with the map table NICK
-func (m *mySQLLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, error) {
+func (m *mySQLLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, []string, error) {
 	tx, err := m.beginInternal(ctx, tree)
 	if err != nil && err != storage.ErrTreeNeedsInit {
-		return nil, err
+		return nil, nil, err
 	}
 	defer tx.Close()
-	results, err := tx.SearchUserMap(ctx, key)
+	identifiers, identities, err := tx.SearchUserMap(ctx, key)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return results, tx.Commit()
+	return identifiers, identities, tx.Commit()
 }
 
 func (m *mySQLLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
@@ -378,22 +378,24 @@ type logTreeTX struct {
 }
 
 /* NICK MAP STUFF. */
-func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, error) {
+func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, []string, error) {
 	rows, err := t.tx.QueryContext (ctx, searchUserMap, key.LogId, key.UserId, key.PublicKey)
 	defer rows.Close()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	identifiers := make([]string, 0)
-	var res string
+	identities := make([]string, 0)
+	var identifier, identity string
 	for rows.Next () {
-		err = rows.Scan(&res)
+		err = rows.Scan(&identifier, &identity)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		identifiers = append (identifiers, res)
+		identifiers = append (identifiers, identifier)
+		identities = append(identities, identity)
 	}
-	return identifiers, nil
+	return identifiers, identities, nil
 }
 
 func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) error {
@@ -402,7 +404,7 @@ func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKe
 }
 
 func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) error {
-	_, err := t.tx.ExecContext (ctx, insertUserMap, contents.LogId, contents.UserId, contents.PublicKey, contents.UserIdentifier)
+	_, err := t.tx.ExecContext (ctx, insertUserMap, contents.LogId, contents.UserId, contents.PublicKey, contents.UserIdentifier, contents.Identity)
 	return err
 }
 

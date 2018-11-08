@@ -177,8 +177,8 @@ func (ls *logStorage) ReadWriteTransaction(ctx context.Context, tree *trillian.T
 	return err
 }
 
-func (ls *logStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, error) {
-        return nil, errors.New("Unimplemented")
+func (ls *logStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, []string, error) {
+        return nil, nil, errors.New("Unimplemented")
 }
 
 func (ls *logStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
@@ -323,8 +323,8 @@ type logTX struct {
 	dequeued map[string]*QueuedEntry
 }
 
-func (tx *logTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, error) {
-        return nil, errors.New ("Unimplemented")
+func (tx *logTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, []string, error) {
+        return nil, nil, errors.New ("Unimplemented")
 }
 
 func (tx *logTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) error {

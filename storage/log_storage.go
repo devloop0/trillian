@@ -78,7 +78,7 @@ type LogTreeTX interface {
 	StoreSignedLogRoot(ctx context.Context, root trillian.SignedLogRoot) error
 
 	//Used to handle any SQL storage associated with the map table NICK
-	SearchUserMap(ctx context.Context, key *UserTypes.MapKey) ([]string, error)
+	SearchUserMap(ctx context.Context, key *UserTypes.MapKey) ([]string, []string, error)
 
 	DeleteFromUserMap(ctx context.Context, key *UserTypes.MapKey) error
 
@@ -156,7 +156,7 @@ type LogStorage interface {
 
 
 	//Used to handle any SQL storage associated with the map table NICK
-	SearchUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) ([]string, error)
+	SearchUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) ([]string, []string, error)
 
 	DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error
 

@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS PublicKeyMaps(
   TreeId               BIGINT NOT NULL,
   UserId               MEDIUMBLOB NOT NULL,
   PublicKey            MEDIUMBLOB NOT NULL,
-  Identifiers          MEDIUMBLOB NOT NULL
+  Identifiers          MEDIUMBLOB NOT NULL,
+  Identity             MEDIUMBLOB NOT NULL
 );
 
 -- This table contains tree parameters that can be changed at runtime such as for

@@ -2,6 +2,7 @@ package UserMap
 
 import(
 	"context"
+	"github.com/golang/glog"
 	"github.com/google/trillian"
 	"github.com/google/trillian/userTypes"
 	"github.com/google/trillian/extension"
@@ -32,34 +33,43 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 		if (err != nil) {
 			return nil, err
 		}
-		contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier)
+		identity := UserTypes.CreateIdentity(key.UserId, newPk, identifier)
+		contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier, identity)
+		glog.Errorf("New %s %s %s %s\n", key.UserId, newPk, identifier, identity)
 		err = reg.LogStorage.AddToUserMap (ctx, tree, contents)
 		if err != nil {
 			return nil, err
 		}
+		glog.Errorf("\n\n")
 		return []*trillian.LogLeaf{newLeafData (data)}, nil
 	} else {
-		ids, err := reg.LogStorage.SearchUserMap (ctx, tree, key)
+		identifiers, identities, err := reg.LogStorage.SearchUserMap (ctx, tree, key)
 		if (err != nil) {
 			return nil, err
+		}
+		if len(identifiers) != len(identities) {
+			panic("Invalid mapping between identifiers and identities.")
 		}
 		err = reg.LogStorage.DeleteFromUserMap (ctx, tree, key)
 		if (err != nil) {
 			return nil, err
 		}
 		leaves := make([]*trillian.LogLeaf, 0)
-		for _, id := range ids {
-			data, err := json.Marshal (UserTypes.CreateLeafData (newPk, id))
+		for i, _ := range identifiers {
+			identifier, identity := identifiers[i], identities[i]
+			data, err := json.Marshal (UserTypes.CreateLeafData (newPk, identifier))
 			if err != nil {
 				return nil, err
 			}
 			leaves = append (leaves, newLeafData (data))
-			contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, id)
+			contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier, identity)
+			glog.Errorf("Updated %s %s %s %s\n", key.UserId, newPk, identifier, identity)
 			err = reg.LogStorage.AddToUserMap (ctx, tree, contents)
 			if err != nil {
 				return nil, err
 			}
 		}
+		glog.Errorf("\n\n")
 		return leaves, nil
 	}
 }

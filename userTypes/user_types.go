@@ -12,6 +12,7 @@ type MapContents struct {
 	UserId string
 	PublicKey string
 	UserIdentifier string
+	Identity string
 }
 
 type UserData struct {
@@ -35,8 +36,8 @@ func CreateMapKey (data *UserData, LogId int64) *MapKey {
         return &key
 }
 
-func CreateMapContents (LogId int64, UserId string, PublicKey string, UserIdentifier string) *MapContents {
-        return &MapContents{LogId: LogId, UserId: UserId, PublicKey: PublicKey, UserIdentifier: UserIdentifier}
+func CreateMapContents (LogId int64, UserId string, PublicKey string, UserIdentifier string, Identity string) *MapContents {
+	return &MapContents{LogId: LogId, UserId: UserId, PublicKey: PublicKey, UserIdentifier: UserIdentifier, Identity: Identity}
 }
 
 func CreateLeafData (pk string, identifier string) LeafData  {

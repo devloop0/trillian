@@ -129,8 +129,8 @@ func (m *memoryLogStorage) Snapshot(ctx context.Context) (storage.ReadOnlyLogTX,
 	return &readOnlyLogTX{m.TreeStorage}, nil
 }
 
-func (m *memoryLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, error) {
-	return nil, errors.New("Unimplemented")
+func (m *memoryLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, []string, error) {
+	return nil, nil, errors.New("Unimplemented")
 }
 
 func (m *memoryLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
@@ -259,8 +259,8 @@ type logTreeTX struct {
 }
 
 /* NICK MAP STUFF. */
-func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, error) {
-	return nil, errors.New ("Unimplemented")
+func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, []string, error) {
+	return nil, nil, errors.New ("Unimplemented")
 }
 
 func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) error {
