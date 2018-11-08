@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/google/trillian"
+	"github.com/google/trillian/userTypes"
 	"github.com/google/trillian/storage"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -107,6 +108,18 @@ func (f *FakeLogStorage) AddSequencedLeaves(ctx context.Context, tree *trillian.
 		res[i] = &trillian.QueuedLogLeaf{Status: status.New(codes.OK, "OK").Proto()}
 	}
 	return res, nil
+}
+
+func (f *FakeLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) ([]string, []string, error) {
+	return nil, nil, nil
+}
+
+func (f *FakeLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
+	return nil
+}
+
+func (f *FakeLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error {
+	return nil
 }
 
 // CheckDatabaseAccessible implements LogStorage.CheckDatabaseAccessible

@@ -35,6 +35,16 @@ func (c *MockLogClient) QueueLeaf(ctx context.Context, in *trillian.QueueLeafReq
 	return c.c.QueueLeaf(ctx, in)
 }
 
+// QueueUserLeaves forwards requests.
+func (c *MockLogClient) QueueUserLeaves(ctx context.Context, in *trillian.QueueLeafRequest, opts ...grpc.CallOption) (*trillian.QueueLeafResponse, error) {
+	return c.c.QueueLeaf(ctx, in)
+}
+
+// QueueUserLeaf forwards requests.
+func (c *MockLogClient) QueueUserLeaf(ctx context.Context, in *trillian.QueueLeafRequest, opts ...grpc.CallOption) (*trillian.QueueLeafResponse, error) {
+	return c.c.QueueLeaf(ctx, in)
+}
+
 // QueueLeaves forwards requests.
 func (c *MockLogClient) QueueLeaves(ctx context.Context, in *trillian.QueueLeavesRequest, opts ...grpc.CallOption) (*trillian.QueueLeavesResponse, error) {
 	return c.c.QueueLeaves(ctx, in)

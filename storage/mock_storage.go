@@ -11,6 +11,7 @@ import (
 	userTypes "github.com/google/trillian/userTypes"
 	reflect "reflect"
 	time "time"
+	UserTypes "github.com/google/trillian/userTypes"
 )
 
 // MockAdminStorage is a mock of AdminStorage interface
@@ -284,15 +285,24 @@ func (mr *MockLogStorageMockRecorder) AddSequencedLeaves(arg0, arg1, arg2, arg3 
 }
 
 // AddToUserMap mocks base method
-func (m *MockLogStorage) AddToUserMap(arg0 context.Context, arg1 *trillian.Tree, arg2 *userTypes.MapContents) error {
+func (m *MockLogStorage) AddToUserMap(arg0 context.Context, arg1 *trillian.Tree, arg2 *UserTypes.MapContents) error {
 	ret := m.ctrl.Call(m, "AddToUserMap", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// AddToUserMap indicates an expected call of AddToUserMap
-func (mr *MockLogStorageMockRecorder) AddToUserMap(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToUserMap", reflect.TypeOf((*MockLogStorage)(nil).AddToUserMap), arg0, arg1, arg2)
+func (m *MockLogStorage) DeleteFromUserMap(arg0 context.Context, arg1 *trillian.Tree, arg2 *UserTypes.MapKey) error {
+	ret := m.ctrl.Call(m, "DeleteFromUserMap", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (m *MockLogStorage) SearchUserMap(arg0 context.Context, arg1 *trillian.Tree, arg2 *UserTypes.MapKey) ([]string, []string, error) {
+	ret := m.ctrl.Call(m, "SearchUserMap", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].([]string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CheckDatabaseAccessible mocks base method
@@ -412,6 +422,26 @@ func (m *MockLogTreeTX) AddSequencedLeaves(arg0 context.Context, arg1 []*trillia
 	ret0, _ := ret[0].([]*trillian.QueuedLogLeaf)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
+}
+
+func (m *MockLogTreeTX) AddToUserMap(arg0 context.Context, arg1 *UserTypes.MapContents) error {
+	ret := m.ctrl.Call(m, "AddToUserMap", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (m *MockLogTreeTX) DeleteFromUserMap(arg0 context.Context, arg1 *UserTypes.MapKey) error {
+	ret := m.ctrl.Call(m, "DeleteFromUserMap", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (m *MockLogTreeTX) SearchUserMap(arg0 context.Context, arg1 *UserTypes.MapKey) ([]string, []string, error) {
+	ret := m.ctrl.Call(m, "SearchUserMap", arg0, arg1)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].([]string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // AddSequencedLeaves indicates an expected call of AddSequencedLeaves
