@@ -143,7 +143,7 @@ func (t *TrillianLogRPCServer) UserWriteLeaves(ctx context.Context, req *trillia
 func (t *TrillianLogRPCServer) UserReadLeaves(ctx context.Context, req *trillian.UserReadLeafRequest) (*trillian.UserLeavesResponse, error) {
 	ctx, span := spanFor(ctx, "UserReadLeaves")
 	defer span.End()
-	tree, _, err := t.getTreeAndHasher(ctx, req.LogId, optsLogWrite)
+	tree, hasher, err := t.getTreeAndHasher(ctx, req.LogId, optsLogWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -151,10 +151,32 @@ func (t *TrillianLogRPCServer) UserReadLeaves(ctx context.Context, req *trillian
 	if err != nil {
 		return nil, err
 	}
+	hashes := make ([][]byte, 0)
 	for _, key := range keys {
-		hash := hashLeaves ()
-		leaves, err := t.GetLeavesByHash ()
+		leaf_data, err := UserMap.PrepareLeafData (key, req.DeviceId)
+		hash, err := hasher.HashLeaf (leaf_data)
+		if err != nil {
+			return nil, err
+		}
+		hashes = append (hashes, hash)
 	}
+	leavesReq := &trillian.GetLeavesByHashRequest{LogId: req.LogId, LeafHash: hashes, OrderBySequence: true, ChargeTo: &trillian.ChargeTo{}}
+	leavesResponse, err := t.GetLeavesByHash (ctx, leavesReq, leavesReq.OrderBySequence)
+	if err != nil {
+		return nil, err
+	}
+	leavesResponse.Leaves = UserMap.GetLatestLeaves (leavesResponse.Leaves)
+	treeSize := leavesResponse.SignedLogRoot.GetTreeSize ()
+	readLeaves := make ([]*trillian.UserLeafInfo, 0)
+	for _, leaf := range leavesResponse.Leaves {
+		leafProof, err := t.GetInclusionProof (ctx, &trillian.GetInclusionProofRequest{LogId: req.LogId, LeafIndex: leaf.LeafIndex, TreeSize: treeSize, ChargeTo: &trillian.ChargeTo{}})
+		if err != nil {
+			return nil, err
+		}
+		leafInfo := &trillian.UserLeafInfo{leaf, leafProof.Proof}
+		readLeaves = append (readLeaves, leafInfo)
+	}
+	return &trillian.UserLeafInfo{LogId: req.LogId, SignedLogRoot: leavesResponse.SignedLogRoot, UserInfo: readLeaves}
 }
 
 //End of Nick's stuff

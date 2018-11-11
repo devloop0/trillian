@@ -422,6 +422,14 @@ message Proof {
 }
 
 //Struct used to return information from User requests. Nick
+
+message UserLeafInfo {
+    LogLeaf log_leaf = 1;
+    Proof proof = 2;
+}
+
 message UserLeavesResponse {
-    repeated GetEntryAndProofResponse responses = 1;
+    int64 logId = 1;
+    SignedLogRoot signed_log_root = 2;
+    repeated UserLeafInfo user_info = 3;
 }

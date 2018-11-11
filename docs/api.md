@@ -36,6 +36,7 @@
     - [QueueLeavesRequest](#trillian.QueueLeavesRequest)
     - [QueueLeavesResponse](#trillian.QueueLeavesResponse)
     - [QueuedLogLeaf](#trillian.QueuedLogLeaf)
+    - [UserLeafInfo](#trillian.UserLeafInfo)
     - [UserLeavesResponse](#trillian.UserLeavesResponse)
     - [UserReadLeafRequest](#trillian.UserReadLeafRequest)
   
@@ -647,15 +648,33 @@ TODO(pavelkalinnikov): Consider renaming it to AddLogLeafResult or the like.
 
 
 
-<a name="trillian.UserLeavesResponse"></a>
+<a name="trillian.UserLeafInfo"></a>
 
-### UserLeavesResponse
-Struct used to return information from User requests. Nick
+### UserLeafInfo
+
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| responses | [GetEntryAndProofResponse](#trillian.GetEntryAndProofResponse) | repeated |  |
+| log_leaf | [LogLeaf](#trillian.LogLeaf) |  |  |
+| proof | [Proof](#trillian.Proof) |  |  |
+
+
+
+
+
+
+<a name="trillian.UserLeavesResponse"></a>
+
+### UserLeavesResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| logId | [int64](#int64) |  |  |
+| signed_log_root | [SignedLogRoot](#trillian.SignedLogRoot) |  |  |
+| user_info | [UserLeafInfo](#trillian.UserLeafInfo) | repeated |  |
 
 
 

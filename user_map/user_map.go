@@ -23,14 +23,22 @@ func ExtractMapKey (q *trillian.QueueLeafRequest) (*UserTypes.MapKey, string, st
 	return UserTypes.CreateMapKey(data, q.LogId), data.UserIdentifier, data.NewPublicKey, nil
 }
 
-func newLeafData (data []byte) *trillian.LogLeaf {
+func NewLeafData (data []byte) (*trillian.LogLeaf) {
 	return &trillian.LogLeaf{LeafValue: data}
+}
+
+func PrepareLeafData ()publicKey string, deviceId string) ([]byte, error) {
+	data, err := json.Marshal (UserTypes.CreateLeafData (newPk, identifier))
+	if (err != nil) {
+		return nil, err
+	}
+	return data, nil
 }
 
 func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Registry, key *UserTypes.MapKey, identifier string, newPk string) ([]*trillian.LogLeaf, error){
 	if (key.PublicKey == "") {
-		data, err := json.Marshal (UserTypes.CreateLeafData (newPk, identifier))
-		if (err != nil) {
+		data, err := PrepareLeafData (newPk, identifier)
+		if err != nil {
 			return nil, err
 		}
 		identity := UserTypes.CreateIdentity(key.UserId, newPk, identifier)
@@ -39,7 +47,7 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 		if err != nil {
 			return nil, err
 		}
-		return []*trillian.LogLeaf{newLeafData (data)}, nil
+		return NewLeafData (data), nil
 	} else {
 		identifiers, identities, err := reg.LogStorage.SearchUserMap (ctx, tree, key)
 		if (err != nil) {
@@ -55,11 +63,11 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 		leaves := make([]*trillian.LogLeaf, 0)
 		for i, _ := range identifiers {
 			identifier, identity := identifiers[i], identities[i]
-			data, err := json.Marshal (UserTypes.CreateLeafData (newPk, identifier))
+			data, err := PrepareLeafData (newPk, identifier)
 			if err != nil {
 				return nil, err
 			}
-			leaves = append (leaves, newLeafData (data))
+			leaves = append (leaves, NewLeafData (data))
 			contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier, identity)
 			err = reg.LogStorage.AddToUserMap (ctx, tree, contents)
 			if err != nil {
