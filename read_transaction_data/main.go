@@ -5,6 +5,7 @@ import (
 	"context"
 	"time"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -12,6 +13,8 @@ import (
 
 	"google.golang.org/grpc"
 	"github.com/google/trillian"
+	"github.com/google/trillian/userTypes"
+	"github.com/google/trillian/networkSimulator"
 	"google.golang.org/grpc/codes"
 )
 
@@ -20,6 +23,8 @@ const initializeFile string = "data/transaction_data"
 
 const txRead int64 = 1
 const txWrite int64 = 2
+
+const useTrillianAPI = false
 
 type tx struct {
 	txType int64
@@ -63,16 +68,37 @@ func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, t
 		if tx_data.txType != txWrite {
 			break
 		}
-		q := &trillian.UserWriteLeafRequest{LogId: tx_data.logId, UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, DeviceId: tx_data.deviceId, NewPublicKey: tx_data.newPublicKey}
-		r, err := client.UserWriteLeaves(ctx, q)
-		if err != nil {
-			log.Fatal (err)
-			return err
-		}
-		for _, info := range (r.UserInfo) {
-			c := codes.Code(info.QueuedLeaf.GetStatus().GetCode())
-			if c != codes.OK && c != codes.AlreadyExists {
+		if !useTrillianAPI {
+			q := &trillian.UserWriteLeafRequest{LogId: tx_data.logId, UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, DeviceId: tx_data.deviceId, NewPublicKey: tx_data.newPublicKey}
+			r, err := client.UserWriteLeaves(ctx, q)
+			NetworkSimulator.GenerateDelay()
+			if err != nil {
+				log.Fatal (err)
 				return err
+			}
+			for _, info := range (r.UserInfo) {
+				c := codes.Code(info.QueuedLeaf.GetStatus().GetCode())
+				if c != codes.OK && c != codes.AlreadyExists {
+					return err
+				}
+			}
+		} else {
+			data := UserTypes.UserData{UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, DeviceId: tx_data.deviceId, NewPublicKey: tx_data.newPublicKey}
+			j, err := json.Marshal(data)
+			if err != nil {
+				return err
+			}
+
+			tl := &trillian.LogLeaf{LeafValue: j}
+			q := &trillian.QueueLeafRequest{LogId: tx_data.logId, Leaf: tl}
+			r, err := client.QueueLeaf(ctx, q)
+			NetworkSimulator.GenerateDelay()
+			if err != nil {
+				return err
+			}
+			c := codes.Code(r.QueuedLeaf.GetStatus().GetCode())
+			if c != codes.OK && c != codes.AlreadyExists {
+				return err;
 			}
 		}
 	}
