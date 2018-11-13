@@ -17,7 +17,7 @@ package client
 import (
 	"context"
 	"math/rand"
-
+	"errors"
 	"github.com/golang/glog"
 	"github.com/google/trillian"
 	"google.golang.org/grpc"
@@ -32,11 +32,6 @@ type MockLogClient struct {
 
 // QueueLeaf forwards requests.
 func (c *MockLogClient) QueueLeaf(ctx context.Context, in *trillian.QueueLeafRequest, opts ...grpc.CallOption) (*trillian.QueueLeafResponse, error) {
-	return c.c.QueueLeaf(ctx, in)
-}
-
-// QueueUserLeaves forwards requests.
-func (c *MockLogClient) QueueUserLeaves(ctx context.Context, in *trillian.QueueLeafRequest, opts ...grpc.CallOption) (*trillian.QueueLeafResponse, error) {
 	return c.c.QueueLeaf(ctx, in)
 }
 
@@ -141,4 +136,14 @@ func (c *MockLogClient) GetEntryAndProof(ctx context.Context, in *trillian.GetEn
 // InitLog forwards requests.
 func (c *MockLogClient) InitLog(ctx context.Context, in *trillian.InitLogRequest, opts ...grpc.CallOption) (*trillian.InitLogResponse, error) {
 	return c.c.InitLog(ctx, in)
+}
+
+//Nick 
+func (c *MockLogClient) UserWriteLeaves(ctx context.Context, req *trillian.UserWriteLeafRequest, opts ...grpc.CallOption) (*trillian.UserWriteLeavesResponse, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+//Read any possible leaves associated with a user.
+func (c *MockLogClient) UserReadLeaves(ctx context.Context, req *trillian.UserReadLeafRequest, opts ...grpc.CallOption) (*trillian.UserReadLeavesResponse, error) {
+	return nil, errors.New("Unimplemented")
 }

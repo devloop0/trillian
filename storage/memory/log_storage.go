@@ -141,6 +141,9 @@ func (m *memoryLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree
         return errors.New("Unimplemented")
 }
 
+func (m *memoryLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error) {
+	return nil, errors.New("Unimplemented")
+}
 
 func (t *readOnlyLogTX) Commit() error {
 	return nil
@@ -271,6 +274,9 @@ func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapCo
 	return errors.New ("Unimplemented")
 }
 
+func (t *logTreeTX) GetKeys (ctx context.Context, request *trillian.UserReadLeafRequest) ([]string, error) {
+        return nil, errors.New ("Unimplemented")
+}
 
 func (t *logTreeTX) ReadRevision(ctx context.Context) (int64, error) {
 	return int64(t.root.Revision), nil

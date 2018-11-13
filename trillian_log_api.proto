@@ -43,7 +43,7 @@ service TrillianLog {
 
     // Adds User leaves to the queue per a write transaction. Returns the
     // leaves added and the associated proofs.
-    rpc UserWriteLeaves (QueueLeafRequest) returns (UserLeavesResponse) {
+    rpc UserWriteLeaves (UserWriteLeafRequest) returns (UserWriteLeavesResponse) {
       option (google.api.http) = {
         post: "/v1beta1/logs/{log_id}/leaves"
         body: "*"
@@ -52,7 +52,7 @@ service TrillianLog {
 
     // Reads all user leaves with the given User + Device ID and associated
     // proofs. Nick
-    rpc UserReadLeaves (UserReadLeafRequest) returns (UserLeavesResponse) {
+    rpc UserReadLeaves (UserReadLeafRequest) returns (UserReadLeavesResponse) {
       option (google.api.http) = {
         post: "/v1beta1/logs/{log_id}/leaves"
         body: "*"
@@ -179,10 +179,17 @@ message ChargeTo {
 //Struct used to request information for User reads. Nick
 message UserReadLeafRequest {
     int64 log_id = 1;
-    string UserId = 2;
-    string DeviceId = 3;
+    string user_id = 2;
+    string device_id = 3;
 }
 
+message UserWriteLeafRequest {
+    int64 log_id = 1;
+    string user_id = 2;
+    string old_public_key = 3;
+    string device_id = 4;
+    string new_public_key = 5;
+}
 
 message QueueLeafRequest {
     int64 log_id = 1;
@@ -423,13 +430,24 @@ message Proof {
 
 //Struct used to return information from User requests. Nick
 
-message UserLeafInfo {
+message UserReadLeafInfo {
     LogLeaf log_leaf = 1;
     Proof proof = 2;
 }
 
-message UserLeavesResponse {
+message UserWriteLeafInfo {
+    QueuedLogLeaf queued_leaf = 1;
+    Proof proof = 2;
+}
+
+message UserReadLeavesResponse {
     int64 logId = 1;
     SignedLogRoot signed_log_root = 2;
-    repeated UserLeafInfo user_info = 3;
+    repeated UserReadLeafInfo user_info = 3;
+}
+
+message UserWriteLeavesResponse {
+    int64 logId = 1;
+    SignedLogRoot signed_log_root = 2;
+    repeated UserWriteLeafInfo user_info = 3;
 }

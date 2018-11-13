@@ -84,6 +84,7 @@ type LogTreeTX interface {
 
 	AddToUserMap(ctx context.Context, contents *UserTypes.MapContents) error
 
+        GetKeys (ctx context.Context, request *trillian.UserReadLeafRequest) ([]string, error)
 
 	// QueueLeaves enqueues leaves for later integration into the tree.
 	// If error is nil, the returned slice of leaves will be the same size as the

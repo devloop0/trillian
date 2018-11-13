@@ -369,6 +369,13 @@ func newRPCInfoForRequest(req interface{}) (*rpcInfo, error) {
 		info.getTree = false // Read-modify-write done within RPC handler
 		info.readonly = false
 
+
+	// Nick revisit with Nikhil 
+	case *trillian.UserWriteLeafRequest,
+	        *trillian.UserReadLeafRequest:
+		info.getTree = false //Consider revisiting to actually get a tree
+		info.readonly = false
+
 	// (Log + Pre-ordered Log) / readonly
 	case *trillian.GetConsistencyProofRequest,
 		*trillian.GetEntryAndProofRequest,

@@ -217,9 +217,9 @@ func (mr *MockTrillianLogServerMockRecorder) QueueLeaves(arg0, arg1 interface{})
 }
 
 // UserReadLeaves mocks base method
-func (m *MockTrillianLogServer) UserReadLeaves(arg0 context.Context, arg1 *trillian.UserReadLeafRequest) (*trillian.UserLeavesResponse, error) {
+func (m *MockTrillianLogServer) UserReadLeaves(arg0 context.Context, arg1 *trillian.UserReadLeafRequest) (*trillian.UserReadLeavesResponse, error) {
 	ret := m.ctrl.Call(m, "UserReadLeaves", arg0, arg1)
-	ret0, _ := ret[0].(*trillian.UserLeavesResponse)
+	ret0, _ := ret[0].(*trillian.UserReadLeavesResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -230,9 +230,9 @@ func (mr *MockTrillianLogServerMockRecorder) UserReadLeaves(arg0, arg1 interface
 }
 
 // UserWriteLeaves mocks base method
-func (m *MockTrillianLogServer) UserWriteLeaves(arg0 context.Context, arg1 *trillian.QueueLeafRequest) (*trillian.UserLeavesResponse, error) {
+func (m *MockTrillianLogServer) UserWriteLeaves(arg0 context.Context, arg1 *trillian.UserWriteLeafRequest) (*trillian.UserWriteLeavesResponse, error) {
 	ret := m.ctrl.Call(m, "UserWriteLeaves", arg0, arg1)
-	ret0, _ := ret[0].(*trillian.UserLeavesResponse)
+	ret0, _ := ret[0].(*trillian.UserWriteLeavesResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

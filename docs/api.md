@@ -36,9 +36,12 @@
     - [QueueLeavesRequest](#trillian.QueueLeavesRequest)
     - [QueueLeavesResponse](#trillian.QueueLeavesResponse)
     - [QueuedLogLeaf](#trillian.QueuedLogLeaf)
-    - [UserLeafInfo](#trillian.UserLeafInfo)
-    - [UserLeavesResponse](#trillian.UserLeavesResponse)
+    - [UserReadLeafInfo](#trillian.UserReadLeafInfo)
     - [UserReadLeafRequest](#trillian.UserReadLeafRequest)
+    - [UserReadLeavesResponse](#trillian.UserReadLeavesResponse)
+    - [UserWriteLeafInfo](#trillian.UserWriteLeafInfo)
+    - [UserWriteLeafRequest](#trillian.UserWriteLeafRequest)
+    - [UserWriteLeavesResponse](#trillian.UserWriteLeavesResponse)
   
   
   
@@ -648,9 +651,9 @@ TODO(pavelkalinnikov): Consider renaming it to AddLogLeafResult or the like.
 
 
 
-<a name="trillian.UserLeafInfo"></a>
+<a name="trillian.UserReadLeafInfo"></a>
 
-### UserLeafInfo
+### UserReadLeafInfo
 
 
 
@@ -658,23 +661,6 @@ TODO(pavelkalinnikov): Consider renaming it to AddLogLeafResult or the like.
 | ----- | ---- | ----- | ----------- |
 | log_leaf | [LogLeaf](#trillian.LogLeaf) |  |  |
 | proof | [Proof](#trillian.Proof) |  |  |
-
-
-
-
-
-
-<a name="trillian.UserLeavesResponse"></a>
-
-### UserLeavesResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| logId | [int64](#int64) |  |  |
-| signed_log_root | [SignedLogRoot](#trillian.SignedLogRoot) |  |  |
-| user_info | [UserLeafInfo](#trillian.UserLeafInfo) | repeated |  |
 
 
 
@@ -690,8 +676,77 @@ Struct used to request information for User reads. Nick
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | log_id | [int64](#int64) |  |  |
-| UserId | [string](#string) |  |  |
-| DeviceId | [string](#string) |  |  |
+| user_id | [string](#string) |  |  |
+| device_id | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="trillian.UserReadLeavesResponse"></a>
+
+### UserReadLeavesResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| logId | [int64](#int64) |  |  |
+| signed_log_root | [SignedLogRoot](#trillian.SignedLogRoot) |  |  |
+| user_info | [UserReadLeafInfo](#trillian.UserReadLeafInfo) | repeated |  |
+
+
+
+
+
+
+<a name="trillian.UserWriteLeafInfo"></a>
+
+### UserWriteLeafInfo
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| queued_leaf | [QueuedLogLeaf](#trillian.QueuedLogLeaf) |  |  |
+| proof | [Proof](#trillian.Proof) |  |  |
+
+
+
+
+
+
+<a name="trillian.UserWriteLeafRequest"></a>
+
+### UserWriteLeafRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| log_id | [int64](#int64) |  |  |
+| user_id | [string](#string) |  |  |
+| old_public_key | [string](#string) |  |  |
+| device_id | [string](#string) |  |  |
+| new_public_key | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="trillian.UserWriteLeavesResponse"></a>
+
+### UserWriteLeavesResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| logId | [int64](#int64) |  |  |
+| signed_log_root | [SignedLogRoot](#trillian.SignedLogRoot) |  |  |
+| user_info | [UserWriteLeafInfo](#trillian.UserWriteLeafInfo) | repeated |  |
 
 
 
@@ -717,8 +772,8 @@ operations such as obtaining tree leaves, inclusion/consistency proofs etc.
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
 | QueueLeaf | [QueueLeafRequest](#trillian.QueueLeafRequest) | [QueueLeafResponse](#trillian.QueueLeafResponse) | Adds a single leaf to the queue. |
-| UserWriteLeaves | [QueueLeafRequest](#trillian.QueueLeafRequest) | [UserLeavesResponse](#trillian.UserLeavesResponse) | Adds User leaves to the queue per a write transaction. Returns the leaves added and the associated proofs. |
-| UserReadLeaves | [UserReadLeafRequest](#trillian.UserReadLeafRequest) | [UserLeavesResponse](#trillian.UserLeavesResponse) | Reads all user leaves with the given User &#43; Device ID and associated proofs. Nick |
+| UserWriteLeaves | [UserWriteLeafRequest](#trillian.UserWriteLeafRequest) | [UserWriteLeavesResponse](#trillian.UserWriteLeavesResponse) | Adds User leaves to the queue per a write transaction. Returns the leaves added and the associated proofs. |
+| UserReadLeaves | [UserReadLeafRequest](#trillian.UserReadLeafRequest) | [UserReadLeavesResponse](#trillian.UserReadLeavesResponse) | Reads all user leaves with the given User &#43; Device ID and associated proofs. Nick |
 | AddSequencedLeaf | [AddSequencedLeafRequest](#trillian.AddSequencedLeafRequest) | [AddSequencedLeafResponse](#trillian.AddSequencedLeafResponse) | Adds a single leaf with an assigned sequence number. Warning: This RPC is under development, don&#39;t use it. |
 | GetInclusionProof | [GetInclusionProofRequest](#trillian.GetInclusionProofRequest) | [GetInclusionProofResponse](#trillian.GetInclusionProofResponse) | Returns inclusion proof for a leaf with a given index in a given tree. |
 | GetInclusionProofByHash | [GetInclusionProofByHashRequest](#trillian.GetInclusionProofByHashRequest) | [GetInclusionProofByHashResponse](#trillian.GetInclusionProofByHashResponse) | Returns inclusion proof for a leaf with a given identity hash in a given tree. |

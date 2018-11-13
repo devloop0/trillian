@@ -60,7 +60,7 @@ func request_TrillianLog_QueueLeaf_0(ctx context.Context, marshaler runtime.Mars
 }
 
 func request_TrillianLog_UserWriteLeaves_0(ctx context.Context, marshaler runtime.Marshaler, client TrillianLogClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueueLeafRequest
+	var protoReq UserWriteLeafRequest
 	var metadata runtime.ServerMetadata
 
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {

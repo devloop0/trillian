@@ -189,6 +189,9 @@ func (ls *logStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, con
         return errors.New("Unimplemented")
 }
 
+func (ls *logStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error) {
+	return nil, errors.New("Unimplemented")
+}
 
 func (ls *logStorage) SnapshotForTree(ctx context.Context, tree *trillian.Tree) (storage.ReadOnlyLogTreeTX, error) {
 	return ls.begin(ctx, tree, true /* readonly */, ls.ts.client.ReadOnlyTransaction())
@@ -335,6 +338,9 @@ func (tx *logTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapConte
         return errors.New ("Unimplemented")
 }
 
+func (tx *logTX) GetKeys (ctx context.Context, request *trillian.UserReadLeafRequest) ([]string, error) {
+        return nil, errors.New ("Unimplemented")
+}
 
 func (tx *logTX) getLogStorageConfig() *spannerpb.LogStorageConfig {
 	return tx.config.(*spannerpb.LogStorageConfig)

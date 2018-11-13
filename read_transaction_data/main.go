@@ -4,7 +4,6 @@ import (
 	"log"
 	"context"
 	"time"
-	"encoding/json"
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
@@ -13,7 +12,6 @@ import (
 
 	"google.golang.org/grpc"
 	"github.com/google/trillian"
-	"github.com/google/trillian/userTypes"
 	"google.golang.org/grpc/codes"
 )
 
@@ -28,7 +26,7 @@ type tx struct {
 	logId int64
 	userId string
 	oldPublicKey string
-	userIdentifier string
+	deviceId string
 	newPublicKey string
 }
 
@@ -53,9 +51,9 @@ func readTransactionData(initializeFile string) ([]tx, error) {
 		}
 		userId := record[2]
 		oldPublicKey := record[3]
-		userIdentifier := record[4]
+		deviceId := record[4]
 		newPublicKey := record[5]
-		ret = append(ret, tx{txType: txType, logId: logId, userId: userId, oldPublicKey: oldPublicKey, userIdentifier: userIdentifier, newPublicKey: newPublicKey})
+		ret = append(ret, tx{txType: txType, logId: logId, userId: userId, oldPublicKey: oldPublicKey, deviceId: deviceId, newPublicKey: newPublicKey})
 	}
 	return ret, nil
 }
@@ -65,22 +63,17 @@ func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, t
 		if tx_data.txType != txWrite {
 			break
 		}
-		data := UserTypes.UserData{UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, UserIdentifier: tx_data.userIdentifier, NewPublicKey: tx_data.newPublicKey}
-		j, err := json.Marshal(data)
-		if err != nil {
-			return err
-		}
-
-		tl := &trillian.LogLeaf{LeafValue: j}
-		q := &trillian.QueueLeafRequest{LogId: tx_data.logId, Leaf: tl}
-		r, err := client.QueueUserLeaf(ctx, q)
+		q := &trillian.UserWriteLeafRequest{LogId: tx_data.logId, UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, DeviceId: tx_data.deviceId, NewPublicKey: tx_data.newPublicKey}
+		r, err := client.UserWriteLeaves(ctx, q)
 		if err != nil {
 			log.Fatal (err)
 			return err
 		}
-		c := codes.Code(r.QueuedLeaf.GetStatus().GetCode())
-		if c != codes.OK && c != codes.AlreadyExists {
-			return err
+		for _, info := range (r.UserInfo) {
+			c := codes.Code(info.QueuedLeaf.GetStatus().GetCode())
+			if c != codes.OK && c != codes.AlreadyExists {
+				return err
+			}
 		}
 	}
 	return nil

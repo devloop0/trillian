@@ -107,21 +107,15 @@ func (t *TrillianLogRPCServer) QueueLeaf(ctx context.Context, req *trillian.Queu
 }
 
 // Writes a transaction of user leaves. NICK 
-func (t *TrillianLogRPCServer) UserWriteLeaves(ctx context.Context, req *trillian.QueueLeafRequest) (*trillian.UserLeavesResponse, error) {
+func (t *TrillianLogRPCServer) UserWriteLeaves(ctx context.Context, req *trillian.UserWriteLeafRequest) (*trillian.UserWriteLeavesResponse, error) {
 	ctx, span := spanFor(ctx, "UserWriteLeaves")
 	defer span.End()
-	if err := validateLogLeaf(req.Leaf, "UserWriteLeaves.Leaf"); err != nil {
-		return nil, err
-	}
-	key, identifier, newPk, err := UserMap.ExtractMapKey (req);
-	if err != nil {
-		return nil, err
-	}
+	key := UserMap.ExtractMapKey (req.LogId, req.UserId, req.OldPublicKey);
 	tree, _, err := t.getTreeAndHasher(ctx, req.LogId, optsLogWrite)
 	if err != nil {
 		return nil, err
 	}
-	leaves, err := UserMap.GatherLeaves (ctx, tree, t.registry, key, identifier, newPk)
+	leaves, err := UserMap.GatherLeaves (ctx, tree, t.registry, key, req.DeviceId, req.NewPublicKey)
 	if (err != nil) {
 		return nil, err
 	}
@@ -136,11 +130,31 @@ func (t *TrillianLogRPCServer) UserWriteLeaves(ctx context.Context, req *trillia
 	if queueRsp == nil {
 		return nil, status.Errorf(codes.Internal, "missing response")
 	}
-	return &trillian.QueueLeafResponse{QueuedLeaf: queueRsp.QueuedLeaves[0]}, nil
+	logRootRsp, err := t.GetLatestSignedLogRoot(ctx, &trillian.GetLatestSignedLogRootRequest{LogId:req.LogId, ChargeTo: &trillian.ChargeTo{}})
+	if err != nil {
+		return nil, err
+	}
+	if logRootRsp == nil {
+		return nil, status.Errorf(codes.Internal, "missing response")
+	}
+	treeSize := logRootRsp.SignedLogRoot.GetTreeSize ()
+	writtenLeaves := make ([]*trillian.UserWriteLeafInfo, 0)
+	for _, leaf := range queueRsp.QueuedLeaves {
+		leafProof, err := t.GetInclusionProof (ctx, &trillian.GetInclusionProofRequest{LogId: req.LogId, LeafIndex: leaf.Leaf.LeafIndex, TreeSize: treeSize, ChargeTo: &trillian.ChargeTo{}})
+		if err != nil {
+			return nil, err
+		}
+		if leafProof == nil {
+			return nil, status.Errorf(codes.Internal, "missing response")
+		}
+		leafInfo := &trillian.UserWriteLeafInfo{QueuedLeaf: leaf, Proof: leafProof.Proof}
+		writtenLeaves = append (writtenLeaves, leafInfo)
+	}
+	return &trillian.UserWriteLeavesResponse{LogId: req.LogId, SignedLogRoot: logRootRsp.SignedLogRoot, UserInfo: writtenLeaves}, nil
 }
 
 //Read any possible leaves associated with a user.
-func (t *TrillianLogRPCServer) UserReadLeaves(ctx context.Context, req *trillian.UserReadLeafRequest) (*trillian.UserLeavesResponse, error) {
+func (t *TrillianLogRPCServer) UserReadLeaves(ctx context.Context, req *trillian.UserReadLeafRequest) (*trillian.UserReadLeavesResponse, error) {
 	ctx, span := spanFor(ctx, "UserReadLeaves")
 	defer span.End()
 	tree, hasher, err := t.getTreeAndHasher(ctx, req.LogId, optsLogWrite)
@@ -161,22 +175,31 @@ func (t *TrillianLogRPCServer) UserReadLeaves(ctx context.Context, req *trillian
 		hashes = append (hashes, hash)
 	}
 	leavesReq := &trillian.GetLeavesByHashRequest{LogId: req.LogId, LeafHash: hashes, OrderBySequence: true, ChargeTo: &trillian.ChargeTo{}}
-	leavesResponse, err := t.GetLeavesByHash (ctx, leavesReq, leavesReq.OrderBySequence)
+	leavesResponse, err := t.GetLeavesByHash (ctx, leavesReq)
 	if err != nil {
 		return nil, err
 	}
-	leavesResponse.Leaves = UserMap.GetLatestLeaves (leavesResponse.Leaves)
+	if leavesResponse == nil {
+		return nil, status.Errorf(codes.Internal, "missing response")
+	}
+	leavesResponse.Leaves, err = UserMap.GetLatestLeaves (leavesResponse.Leaves)
+	if err != nil {
+		return nil, err
+	}
 	treeSize := leavesResponse.SignedLogRoot.GetTreeSize ()
-	readLeaves := make ([]*trillian.UserLeafInfo, 0)
+	readLeaves := make ([]*trillian.UserReadLeafInfo, 0)
 	for _, leaf := range leavesResponse.Leaves {
 		leafProof, err := t.GetInclusionProof (ctx, &trillian.GetInclusionProofRequest{LogId: req.LogId, LeafIndex: leaf.LeafIndex, TreeSize: treeSize, ChargeTo: &trillian.ChargeTo{}})
 		if err != nil {
 			return nil, err
 		}
-		leafInfo := &trillian.UserLeafInfo{leaf, leafProof.Proof}
+		if leafProof == nil {
+			return nil, status.Errorf(codes.Internal, "missing response")
+		}
+		leafInfo := &trillian.UserReadLeafInfo{LogLeaf: leaf, Proof: leafProof.Proof}
 		readLeaves = append (readLeaves, leafInfo)
 	}
-	return &trillian.UserLeafInfo{LogId: req.LogId, SignedLogRoot: leavesResponse.SignedLogRoot, UserInfo: readLeaves}
+	return &trillian.UserReadLeavesResponse{LogId: req.LogId, SignedLogRoot: leavesResponse.SignedLogRoot, UserInfo: readLeaves}, nil
 }
 
 //End of Nick's stuff

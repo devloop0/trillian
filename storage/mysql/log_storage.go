@@ -321,12 +321,12 @@ func (m *mySQLLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree,
 func (m *mySQLLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error) {
 	tx, err := m.beginInternal(ctx, tree)
 	if err != nil && err != storage.ErrTreeNeedsInit {
-		return err
+		return nil, err
 	}
 	defer tx.Close()
-	keys, err = tx.GetKeys(ctx, contents)
+	keys, err := tx.GetKeys(ctx, request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	return keys, tx.Commit()
 }
@@ -423,7 +423,7 @@ func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKe
 }
 
 func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) error {
-	_, err := t.tx.ExecContext (ctx, insertUserMap, contents.LogId, contents.UserId, contents.PublicKey, contents.UserIdentifier, contents.Identity)
+	_, err := t.tx.ExecContext (ctx, insertUserMap, contents.LogId, contents.UserId, contents.PublicKey, contents.DeviceId, contents.Identity)
 	// NetworkSimulator.DropPacket()
 	// NetworkSimulator.GenerateDelay()
 	return err
@@ -445,7 +445,6 @@ func (t *logTreeTX) GetKeys (ctx context.Context, request *trillian.UserReadLeaf
 		keys = append (keys, key)
 	}
 	return keys, nil
-}
 }
 
 /* End of Nick's stuff. */

@@ -110,6 +110,8 @@ func (f *FakeLogStorage) AddSequencedLeaves(ctx context.Context, tree *trillian.
 	return res, nil
 }
 
+//Nick
+
 func (f *FakeLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) ([]string, []string, error) {
 	return nil, nil, nil
 }
@@ -120,6 +122,10 @@ func (f *FakeLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.T
 
 func (f *FakeLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error {
 	return nil
+}
+
+func (f *FakeLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error) {
+	return nil, errors.New("Unimplemented")
 }
 
 // CheckDatabaseAccessible implements LogStorage.CheckDatabaseAccessible
