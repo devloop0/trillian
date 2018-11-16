@@ -291,6 +291,7 @@ loop:
 	for {
 		// TODO(alcutter): want a child context with deadline here?
 		start := l.info.TimeSource.Now()
+		//_ = l.info.Registry.LogStorage.WriteCurrentEpoch(ctx, start.UnixNano() / int64(time.Millisecond))
 		if err := l.getLogsAndExecutePass(ctx); err != nil {
 			// Suppress the error if ctx is done (ok==false) as we're exiting.
 			if _, ok := <-ctx.Done(); ok {

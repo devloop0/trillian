@@ -33,6 +33,10 @@ CREATE TABLE IF NOT EXISTS PublicKeyMaps(
   Identity             MEDIUMBLOB NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS Epochs(
+  Epoch BIGINT NOT NULL
+);
+
 -- This table contains tree parameters that can be changed at runtime such as for
 -- administrative purposes.
 CREATE TABLE IF NOT EXISTS TreeControl(

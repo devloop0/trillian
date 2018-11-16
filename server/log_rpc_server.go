@@ -17,6 +17,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/google/trillian"
@@ -130,6 +131,7 @@ func (t *TrillianLogRPCServer) UserWriteLeaves(ctx context.Context, req *trillia
 	if queueRsp == nil {
 		return nil, status.Errorf(codes.Internal, "missing response")
 	}
+	time.Sleep(100 * time.Millisecond)
 	logRootRsp, err := t.GetLatestSignedLogRoot(ctx, &trillian.GetLatestSignedLogRootRequest{LogId:req.LogId, ChargeTo: &trillian.ChargeTo{}})
 	if err != nil {
 		return nil, err

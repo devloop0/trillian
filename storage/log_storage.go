@@ -164,6 +164,8 @@ type LogStorage interface {
 	AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error
 
 	GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error)
+
+	WriteCurrentEpoch(ctx context.Context, timestamp int64) error
 	//End of Nick
 
 
