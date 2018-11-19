@@ -291,6 +291,8 @@ loop:
 	for {
 		// TODO(alcutter): want a child context with deadline here?
 		start := l.info.TimeSource.Now()
+
+		// UNCOMMENT THIS TO ADD EPOCH SUPPORT, COMMENTED TO MAKE SURE TESTS DON'T FAIL
 		//_ = l.info.Registry.LogStorage.WriteCurrentEpoch(ctx, start.UnixNano() / int64(time.Millisecond))
 		if err := l.getLogsAndExecutePass(ctx); err != nil {
 			// Suppress the error if ctx is done (ok==false) as we're exiting.
