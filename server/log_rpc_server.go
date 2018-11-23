@@ -115,7 +115,7 @@ func (t *TrillianLogRPCServer) UserWriteLeaves(ctx context.Context, req *trillia
 	if err != nil {
 		return nil, err
 	}
-	leaves, err := UserMap.GatherLeaves (ctx, tree, t.registry, key, req.DeviceId, req.NewPublicKey)
+	leaves, tx, err := UserMap.GatherLeaves (ctx, tree, t.registry, key, req.DeviceId, req.NewPublicKey)
 	if (err != nil) {
 		return nil, err
 	}
@@ -123,34 +123,49 @@ func (t *TrillianLogRPCServer) UserWriteLeaves(ctx context.Context, req *trillia
 		LogId:  req.LogId,
 		Leaves: leaves,
 	}
-	queueRsp, err := t.QueueLeaves(ctx, queueReq)
+	queueRsp, err := t.QueueLeafs(ctx, queueReq, tx)
 	if err != nil {
 		return nil, err
 	}
 	if queueRsp == nil {
 		return nil, status.Errorf(codes.Internal, "missing response")
 	}
-	logRootRsp, err := t.GetLatestSignedLogRoot(ctx, &trillian.GetLatestSignedLogRootRequest{LogId:req.LogId, ChargeTo: &trillian.ChargeTo{}})
+	return &trillian.UserWriteLeavesResponse{LogId: req.LogId, Leaves: queueRsp}, nil
+}
+
+// QueueLeaves submits a batch of leaves to the log for later integration into the underlying tree.
+func (t *TrillianLogRPCServer) QueueLeafs(ctx context.Context, req *trillian.QueueLeavesRequest, tx storage.LogTreeTX) (*trillian.QueueLeavesResponse, error) {
+	ctx, span := spanFor(ctx, "QueueLeaves")
+	defer span.End()
+	if err := validateLogLeaves(req.Leaves, "QueueLeavesRequest"); err != nil {
+		return nil, err
+	}
+	logID := req.LogId
+
+	tree, hasher, err := t.getTreeAndHasher(ctx, logID, optsLogWrite)
 	if err != nil {
 		return nil, err
 	}
-	if logRootRsp == nil {
-		return nil, status.Errorf(codes.Internal, "missing response")
+
+	ctx = trees.NewContext(ctx, tree)
+
+	if err := hashLeaves(req.Leaves, hasher); err != nil {
+		return nil, err
 	}
-	treeSize := logRootRsp.SignedLogRoot.GetTreeSize ()
-	writtenLeaves := make ([]*trillian.UserWriteLeafInfo, 0)
-	for _, leaf := range queueRsp.QueuedLeaves {
-		leafProof, err := t.GetInclusionProof (ctx, &trillian.GetInclusionProofRequest{LogId: req.LogId, LeafIndex: leaf.Leaf.LeafIndex, TreeSize: treeSize, ChargeTo: &trillian.ChargeTo{}})
-		if err != nil {
-			return nil, err
-		}
-		if leafProof == nil {
-			return nil, status.Errorf(codes.Internal, "missing response")
-		}
-		leafInfo := &trillian.UserWriteLeafInfo{QueuedLeaf: leaf, Proof: leafProof.Proof}
-		writtenLeaves = append (writtenLeaves, leafInfo)
+
+	ret, err := t.registry.LogStorage.QueueLeaves(ctx, tree, req.Leaves, t.timeSource.Now())
+	if err != nil {
+		return nil, err
 	}
-	return &trillian.UserWriteLeavesResponse{LogId: req.LogId, SignedLogRoot: logRootRsp.SignedLogRoot, UserInfo: writtenLeaves}, nil
+
+	for _, l := range ret {
+		if l.Status == nil || l.Status.Code == int32(codes.OK) {
+			t.leafCounter.Inc("new")
+		} else if l.Status.Code == int32(codes.AlreadyExists) {
+			t.leafCounter.Inc("existing")
+		}
+	}
+	return &trillian.QueueLeavesResponse{QueuedLeaves: ret}, nil
 }
 
 //Read any possible leaves associated with a user.

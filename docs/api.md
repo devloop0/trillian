@@ -39,7 +39,6 @@
     - [UserReadLeafInfo](#trillian.UserReadLeafInfo)
     - [UserReadLeafRequest](#trillian.UserReadLeafRequest)
     - [UserReadLeavesResponse](#trillian.UserReadLeavesResponse)
-    - [UserWriteLeafInfo](#trillian.UserWriteLeafInfo)
     - [UserWriteLeafRequest](#trillian.UserWriteLeafRequest)
     - [UserWriteLeavesResponse](#trillian.UserWriteLeavesResponse)
   
@@ -701,22 +700,6 @@ Struct used to request information for User reads. Nick
 
 
 
-<a name="trillian.UserWriteLeafInfo"></a>
-
-### UserWriteLeafInfo
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| queued_leaf | [QueuedLogLeaf](#trillian.QueuedLogLeaf) |  |  |
-| proof | [Proof](#trillian.Proof) |  |  |
-
-
-
-
-
-
 <a name="trillian.UserWriteLeafRequest"></a>
 
 ### UserWriteLeafRequest
@@ -745,8 +728,7 @@ Struct used to request information for User reads. Nick
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | logId | [int64](#int64) |  |  |
-| signed_log_root | [SignedLogRoot](#trillian.SignedLogRoot) |  |  |
-| user_info | [UserWriteLeafInfo](#trillian.UserWriteLeafInfo) | repeated |  |
+| leaves | [QueueLeavesResponse](#trillian.QueueLeavesResponse) |  |  |
 
 
 

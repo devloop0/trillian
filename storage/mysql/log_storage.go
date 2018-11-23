@@ -279,43 +279,43 @@ func (m *mySQLLogStorage) ReadWriteTransaction(ctx context.Context, tree *trilli
 }
 
 //Used to handle any SQL storage associated with the map table NICK
-func (m *mySQLLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, []string, error) {
+func (m *mySQLLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, []string, storage.LogTreeTX, error) {
 	tx, err := m.beginInternal(ctx, tree)
 	if err != nil && err != storage.ErrTreeNeedsInit {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	defer tx.Close()
 	identifiers, identities, err := tx.SearchUserMap(ctx, key)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return identifiers, identities, tx.Commit()
+	return identifiers, identities, tx, nil
 }
 
-func (m *mySQLLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
+func (m *mySQLLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) (storage.LogTreeTX, error) {
 	tx, err := m.beginInternal(ctx, tree)
 	if err != nil && err != storage.ErrTreeNeedsInit {
-		return err
+		return nil, err
 	}
 	defer tx.Close()
 	err = tx.DeleteFromUserMap(ctx, key)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return tx.Commit()
+	return tx, nil
 }
 
-func (m *mySQLLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error {
+func (m *mySQLLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) (storage.LogTreeTX, error) {
 	tx, err := m.beginInternal(ctx, tree)
 	if err != nil && err != storage.ErrTreeNeedsInit {
-		return err
+		return nil, err
 	}
 	defer tx.Close()
 	err = tx.AddToUserMap(ctx, contents)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return tx.Commit()
+	return tx, nil
 }
 
 func (m *mySQLLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error) {
@@ -361,6 +361,30 @@ func (m *mySQLLogStorage) QueueLeaves(ctx context.Context, tree *trillian.Tree, 
 	if err != nil {
 		return nil, err
 	}
+	existing, err := tx.QueueLeaves(ctx, leaves, queueTimestamp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	ret := make([]*trillian.QueuedLogLeaf, len(leaves))
+	for i, e := range existing {
+		if e != nil {
+			ret[i] = &trillian.QueuedLogLeaf{
+				Leaf:   e,
+				Status: status.Newf(codes.AlreadyExists, "leaf already exists: %v", e.LeafIdentityHash).Proto(),
+			}
+			continue
+		}
+		ret[i] = &trillian.QueuedLogLeaf{Leaf: leaves[i]}
+	}
+	return ret, nil
+}
+
+func (m *mySQLLogStorage) QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, queueTimestamp time.Time, tx storage.LogTreeTX) ([]*trillian.QueuedLogLeaf, error) {
 	existing, err := tx.QueueLeaves(ctx, leaves, queueTimestamp)
 	if err != nil {
 		return nil, err

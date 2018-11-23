@@ -86,6 +86,7 @@ type LogTreeTX interface {
 
         GetKeys (ctx context.Context, request *trillian.UserReadLeafRequest) ([]string, error)
 
+
 	// QueueLeaves enqueues leaves for later integration into the tree.
 	// If error is nil, the returned slice of leaves will be the same size as the
 	// input, and each entry will hold:
@@ -157,15 +158,18 @@ type LogStorage interface {
 
 
 	//Used to handle any SQL storage associated with the map table NICK
-	SearchUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) ([]string, []string, error)
+	SearchUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) ([]string, []string, LogTreeTX, error)
 
-	DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error
+	DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) (LogTreeTX, error)
 
-	AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error
+	AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) (LogTreeTX, error)
 
 	GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error)
-	//End of Nick
 
+	QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, queueTimestamp time.Time, tx LogTreeTX) ([]*trillian.QueuedLogLeaf, error)
+
+
+	//End of Nick
 
 	// QueueLeaves enqueues leaves for later integration into the tree.
 	// If error is nil, the returned slice of leaves will be the same size as the

@@ -4,6 +4,7 @@ import(
 	"context"
 	"errors"
 	"github.com/google/trillian"
+	"github.com/google/trillian/storage"
 	"github.com/google/trillian/userTypes"
 	"github.com/google/trillian/extension"
 	"encoding/json"
@@ -30,46 +31,46 @@ func PrepareLeafData (publicKey string, deviceId string) ([]byte, error) {
 	return data, nil
 }
 
-func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Registry, key *UserTypes.MapKey, deviceId string, newPk string) ([]*trillian.LogLeaf, error){
+func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Registry, key *UserTypes.MapKey, deviceId string, newPk string) ([]*trillian.LogLeaf, storage.LogTreeTX, error){
 	if (key.PublicKey == "") {
 		data, err := PrepareLeafData (newPk, deviceId)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		identity := UserTypes.CreateIdentity(key.UserId, newPk, deviceId)
 		contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, deviceId, identity)
-		err = reg.LogStorage.AddToUserMap (ctx, tree, contents)
+		tx, err := reg.LogStorage.AddToUserMap (ctx, tree, contents)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return []*trillian.LogLeaf{NewLeafData (data)}, nil
+		return []*trillian.LogLeaf{NewLeafData (data)}, tx, nil
 	} else {
-		identifiers, identities, err := reg.LogStorage.SearchUserMap (ctx, tree, key)
+		identifiers, identities, tx, err := reg.LogStorage.SearchUserMap (ctx, tree, key)
 		if (err != nil) {
-			return nil, err
+			return nil, nil, err
 		}
 		if len(identifiers) != len(identities) {
 			panic("Invalid mapping between identifiers and identities.")
 		}
-		err = reg.LogStorage.DeleteFromUserMap (ctx, tree, key)
+		err = tx.DeleteFromUserMap (ctx, key)
 		if (err != nil) {
-			return nil, err
+			return nil, nil, err
 		}
 		leaves := make([]*trillian.LogLeaf, 0)
 		for i, _ := range identifiers {
 			identifier, identity := identifiers[i], identities[i]
 			data, err := PrepareLeafData (newPk, identifier)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			leaves = append (leaves, NewLeafData (data))
 			contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier, identity)
-			err = reg.LogStorage.AddToUserMap (ctx, tree, contents)
+			err = tx.AddToUserMap (ctx, contents)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 		}
-		return leaves, nil
+		return leaves, tx, nil
 	}
 }
 

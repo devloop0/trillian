@@ -177,16 +177,16 @@ func (ls *logStorage) ReadWriteTransaction(ctx context.Context, tree *trillian.T
 	return err
 }
 
-func (ls *logStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, []string, error) {
-        return nil, nil, errors.New("Unimplemented")
+func (ls *logStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, []string, storage.LogTreeTX, error) {
+        return nil, nil, nil, errors.New("Unimplemented")
 }
 
-func (ls *logStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
-        return errors.New("Unimplemented")
+func (ls *logStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) (storage.LogTreeTX, error) {
+        return nil, errors.New("Unimplemented")
 }
 
-func (ls *logStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error {
-        return errors.New("Unimplemented")
+func (ls *logStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) (storage.LogTreeTX, error) {
+        return nil, errors.New("Unimplemented")
 }
 
 func (ls *logStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error) {
@@ -195,6 +195,10 @@ func (ls *logStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request 
 
 func (ls *logStorage) SnapshotForTree(ctx context.Context, tree *trillian.Tree) (storage.ReadOnlyLogTreeTX, error) {
 	return ls.begin(ctx, tree, true /* readonly */, ls.ts.client.ReadOnlyTransaction())
+}
+
+func (ls *logStorage) QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, qTimestamp time.Time, tx storage.LogTreeTX) ([]*trillian.QueuedLogLeaf, error) {
+	return nil, errors.New("Unimplemented")
 }
 
 func (ls *logStorage) QueueLeaves(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, qTimestamp time.Time) ([]*trillian.QueuedLogLeaf, error) {

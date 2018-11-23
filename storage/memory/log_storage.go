@@ -129,21 +129,30 @@ func (m *memoryLogStorage) Snapshot(ctx context.Context) (storage.ReadOnlyLogTX,
 	return &readOnlyLogTX{m.TreeStorage}, nil
 }
 
-func (m *memoryLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, []string, error) {
-	return nil, nil, errors.New("Unimplemented")
+//Begin Nick's stuff
+
+func (m *memoryLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree,  key *UserTypes.MapKey) ([]string, []string, storage.LogTreeTX, error) {
+	return nil, nil, nil, errors.New("Unimplemented")
 }
 
-func (m *memoryLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
-        return errors.New("Unimplemented")
+func (m *memoryLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) (storage.LogTreeTX, error) {
+        return nil, errors.New("Unimplemented")
 }
 
-func (m *memoryLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error {
-        return errors.New("Unimplemented")
+func (m *memoryLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) (storage.LogTreeTX, error) {
+        return nil, errors.New("Unimplemented")
 }
 
 func (m *memoryLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error) {
 	return nil, errors.New("Unimplemented")
 }
+
+
+func (m *memoryLogStorage) QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, queueTimestamp time.Time, tx storage.LogTreeTX) ([]*trillian.QueuedLogLeaf, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+//End of Nick's stuff
 
 func (t *readOnlyLogTX) Commit() error {
 	return nil
@@ -266,11 +275,11 @@ func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) (
 	return nil, nil, errors.New ("Unimplemented")
 }
 
-func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) error {
+func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) (error) {
 	return errors.New ("Unimplemented")
 }
 
-func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) error {
+func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) (error) {
 	return errors.New ("Unimplemented")
 }
 
