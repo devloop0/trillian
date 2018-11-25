@@ -5,8 +5,8 @@ initialize: initialize_log_server initialize_log_signer initialize_log_id
 delete: delete_log_id
 
 clean: delete
-	killall ../trillian_log_server
 	killall ../trillian_log_signer
+	killall ../trillian_log_server
 	rm -f data/transaction_data data/logid
 	rm read_transaction_data
 
