@@ -284,7 +284,6 @@ func (m *mySQLLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree
 	if err != nil && err != storage.ErrTreeNeedsInit {
 		return nil, nil, nil, err
 	}
-	defer tx.Close()
 	identifiers, identities, err := tx.SearchUserMap(ctx, key)
 	if err != nil {
 		return nil, nil, nil, err
@@ -297,7 +296,6 @@ func (m *mySQLLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.
 	if err != nil && err != storage.ErrTreeNeedsInit {
 		return nil, err
 	}
-	defer tx.Close()
 	err = tx.DeleteFromUserMap(ctx, key)
 	if err != nil {
 		return nil, err
@@ -310,7 +308,6 @@ func (m *mySQLLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree,
 	if err != nil && err != storage.ErrTreeNeedsInit {
 		return nil, err
 	}
-	defer tx.Close()
 	err = tx.AddToUserMap(ctx, contents)
 	if err != nil {
 		return nil, err
@@ -405,6 +402,7 @@ func (m *mySQLLogStorage) QueueLeafs(ctx context.Context, tree *trillian.Tree, l
 		}
 		ret[i] = &trillian.QueuedLogLeaf{Leaf: leaves[i]}
 	}
+	tx.Close ()
 	return ret, nil
 }
 

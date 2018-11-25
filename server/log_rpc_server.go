@@ -17,7 +17,6 @@ package server
 import (
 	"context"
 	"fmt"
-
 	"github.com/golang/glog"
 	"github.com/google/trillian"
 	"github.com/google/trillian/extension"
@@ -135,7 +134,7 @@ func (t *TrillianLogRPCServer) UserWriteLeaves(ctx context.Context, req *trillia
 
 // QueueLeaves submits a batch of leaves to the log for later integration into the underlying tree.
 func (t *TrillianLogRPCServer) QueueLeafs(ctx context.Context, req *trillian.QueueLeavesRequest, tx storage.LogTreeTX) (*trillian.QueueLeavesResponse, error) {
-	ctx, span := spanFor(ctx, "QueueLeaves")
+	ctx, span := spanFor(ctx, "QueueLeafs")
 	defer span.End()
 	if err := validateLogLeaves(req.Leaves, "QueueLeavesRequest"); err != nil {
 		return nil, err
@@ -153,7 +152,7 @@ func (t *TrillianLogRPCServer) QueueLeafs(ctx context.Context, req *trillian.Que
 		return nil, err
 	}
 
-	ret, err := t.registry.LogStorage.QueueLeaves(ctx, tree, req.Leaves, t.timeSource.Now())
+	ret, err := t.registry.LogStorage.QueueLeafs(ctx, tree, req.Leaves, t.timeSource.Now(), tx)
 	if err != nil {
 		return nil, err
 	}

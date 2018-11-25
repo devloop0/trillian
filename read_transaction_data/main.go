@@ -76,8 +76,8 @@ func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, t
 				log.Fatal (err)
 				return err
 			}
-			for _, info := range (r.UserInfo) {
-				c := codes.Code(info.QueuedLeaf.GetStatus().GetCode())
+			for _, leaf := range (r.Leaves.QueuedLeaves) {
+				c := codes.Code(leaf.GetStatus().GetCode())
 				if c != codes.OK && c != codes.AlreadyExists {
 					return err
 				}
