@@ -90,6 +90,29 @@ type LogOperationInfo struct {
 	RunInterval time.Duration
 	// NumWorkers is the number of worker goroutines to run in parallel.
 	NumWorkers int
+
+	//Nick's Stuff. Hopefully it doesn't break stuff.
+
+	// True if all writes are user transactions and not individual leaves
+	TrxnWrites bool
+
+	// True if work should be done in background.
+	IsBackground bool
+
+	// True if the BatchSize should be ignored as the maximum number of
+	// transactions to update.
+	IgnoreBatchSize bool
+
+	// The minimum number of transactions to update the tree.
+	// Only applies if processing is done in the background.
+	MinProcessing int
+
+	// True if updates can occur more frequently than allowed
+	// by the TimeSource. The TimeSource will always be reset
+	// after any update.
+	UseLooseTimer bool
+
+
 }
 
 // LogOperationManager controls scheduling activities for logs.
