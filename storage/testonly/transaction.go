@@ -112,16 +112,16 @@ func (f *FakeLogStorage) AddSequencedLeaves(ctx context.Context, tree *trillian.
 
 //Nick
 
-func (f *FakeLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) ([]string, []string, error) {
-	return nil, nil, errors.New("Unimplemented")
+func (f *FakeLogStorage) SearchUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) ([]string, []string, storage.LogTreeTX, error) {
+	return nil, nil, nil, errors.New("Unimplemented")
 }
 
-func (f *FakeLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) error {
-	return errors.New("Unimplemented")
+func (f *FakeLogStorage) DeleteFromUserMap(ctx context.Context, tree *trillian.Tree, key *UserTypes.MapKey) (storage.LogTreeTX, error) {
+	return nil, errors.New("Unimplemented")
 }
 
-func (f *FakeLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) error {
-	return errors.New("Unimplemented")
+func (f *FakeLogStorage) AddToUserMap(ctx context.Context, tree *trillian.Tree, contents *UserTypes.MapContents) (storage.LogTreeTX, error) {
+	return nil, errors.New("Unimplemented")
 }
 
 func (f *FakeLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error) {
@@ -131,6 +131,13 @@ func (f *FakeLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, reque
 func (f* FakeLogStorage) WriteCurrentEpoch(ctx context.Context, timestamp int64) error {
 	return errors.New("Unimplemented")
 }
+
+func (f *FakeLogStorage) QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, queueTimestamp time.Time, tx storage.LogTreeTX) ([]*trillian.QueuedLogLeaf, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+
+//Nick end
 
 // CheckDatabaseAccessible implements LogStorage.CheckDatabaseAccessible
 func (f *FakeLogStorage) CheckDatabaseAccessible(ctx context.Context) error {

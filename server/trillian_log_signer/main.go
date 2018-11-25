@@ -70,6 +70,9 @@ var (
 	resignOdds          = flag.Int("resign_odds", 10, "Chance of resigning mastership after each check, the N in 1-in-N")
 
 	configFile = flag.String("config", "", "Config file containing flags, file contents can be overridden by command line flags")
+
+	//Nick's flags for concurrency
+	transactionWrites        = flag.Bool("use_trxns", false, "If true all batches refer to whole transactions.")
 )
 
 func main() {
