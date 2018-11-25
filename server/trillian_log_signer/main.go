@@ -72,7 +72,11 @@ var (
 	configFile = flag.String("config", "", "Config file containing flags, file contents can be overridden by command line flags")
 
 	//Nick's flags for concurrency
-	transactionWrites        = flag.Bool("use_trxns", false, "If true all batches refer to whole transactions.")
+	transactionWrites = flag.Bool("use_trxns", false, "If true all batch sizes refer to whole transactions rather than individual nodes.")
+	backgroundWork = flag.Bool("do_background_work", false, "If true the signer will potentially process in the background depending on other flags.")
+	ignoreBatchSize = flag.Bool("ignore_batch_size", false, "If true and the signer is doing background work it will ignore the batch size limitation on a transaction.")
+	useLooseTimer = flag.Bool ("use_loose_timer", false, "If true then the signer may update the tree more frequently than the given timer if the information is ready.")
+	processingMin = flag.Int("process_min", 0, "Sets a minimum number of transactions that must be in the queue to begin background processing. If -1 then the value is the batch_size. If the value is greater than the batch_size then it will be reduced to the batch_size.")
 )
 
 func main() {
