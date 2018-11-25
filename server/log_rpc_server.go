@@ -17,6 +17,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 	"github.com/golang/glog"
 	"github.com/google/trillian"
 	"github.com/google/trillian/extension"

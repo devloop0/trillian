@@ -166,6 +166,8 @@ type LogStorage interface {
 
 	GetKeys(ctx context.Context, tree *trillian.Tree, request *trillian.UserReadLeafRequest) ([]string, error)
 
+	WriteCurrentEpoch(ctx context.Context, timestamp int64) error
+
 	QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, queueTimestamp time.Time, tx LogTreeTX) ([]*trillian.QueuedLogLeaf, error)
 
 

@@ -50,6 +50,7 @@ const (
         insertUserMap = "INSERT INTO PublicKeyMaps(TreeId,UserId,PublicKey,Identifiers,Identity) VALUES(?,?,?,?,?)"
         deleteUserMap = "DELETE FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
 	getUserKeys = "SELECT PublicKey FROM PublicKeyMaps WHERE TreeID=? AND UserId=? AND Identifiers=?"
+	insertEpoch = "INSERT INTO Epochs(Epoch) VALUES(?)"
 
 	selectNonDeletedTreeIDByTypeAndStateSQL = `
 		SELECT TreeId FROM Trees
@@ -328,6 +329,22 @@ func (m *mySQLLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, requ
 	return keys, tx.Commit()
 }
 
+func (m *mySQLLogStorage) WriteCurrentEpoch(ctx context.Context, timestamp int64) error {
+	tx, err := m.db.BeginTx(ctx, nil /* opts */)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(insertEpoch, timestamp)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
 //End of Nick's stuff
 
 func (m *mySQLLogStorage) AddSequencedLeaves(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, timestamp time.Time) ([]*trillian.QueuedLogLeaf, error) {
@@ -468,7 +485,6 @@ func (t *logTreeTX) GetKeys (ctx context.Context, request *trillian.UserReadLeaf
 	}
 	return keys, nil
 }
-
 /* End of Nick's stuff. */
 
 func (t *logTreeTX) ReadRevision(ctx context.Context) (int64, error) {

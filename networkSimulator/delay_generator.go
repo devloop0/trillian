@@ -50,3 +50,9 @@ func GenerateDelay() {
 		}
 	}
 }
+
+func GenerateDelays(n uint64) {
+	for i := uint64(0); i < n; i += 1 {
+		GenerateDelay();
+	}
+}

@@ -147,12 +147,14 @@ func (m *memoryLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, req
 	return nil, errors.New("Unimplemented")
 }
 
-
 func (m *memoryLogStorage) QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, queueTimestamp time.Time, tx storage.LogTreeTX) ([]*trillian.QueuedLogLeaf, error) {
 	return nil, errors.New("Unimplemented")
 }
 
 //End of Nick's stuff
+func (m *memoryLogStorage) WriteCurrentEpoch (ctx context.Context, timestamp int64) error {
+        return errors.New("Unimplemented")
+}
 
 func (t *readOnlyLogTX) Commit() error {
 	return nil

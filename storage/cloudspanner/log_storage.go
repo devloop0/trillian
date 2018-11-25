@@ -193,6 +193,10 @@ func (ls *logStorage) GetKeys(ctx context.Context, tree *trillian.Tree, request 
 	return nil, errors.New("Unimplemented")
 }
 
+func (ls *logStorage) WriteCurrentEpoch(ctx context.Context, timestamp int64) error {
+        return errors.New("Unimplemented")
+}
+
 func (ls *logStorage) SnapshotForTree(ctx context.Context, tree *trillian.Tree) (storage.ReadOnlyLogTreeTX, error) {
 	return ls.begin(ctx, tree, true /* readonly */, ls.ts.client.ReadOnlyTransaction())
 }

@@ -291,9 +291,21 @@ func (m *MockLogStorage) AddToUserMap(arg0 context.Context, arg1 *trillian.Tree,
 	return ret0, ret1
 }
 
+// WriteCurrentEpoch mocks base method
+func (m *MockLogStorage) WriteCurrentEpoch (arg0 context.Context, arg1 int64) error {
+	ret := m.ctrl.Call(m, "WriteCurrentEpoch", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
 // AddToUserMap indicates an expected call of AddToUserMap
 func (mr *MockLogStorageMockRecorder) AddToUserMap(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToUserMap", reflect.TypeOf((*MockLogStorage)(nil).AddToUserMap), arg0, arg1, arg2)
+}
+
+// WriteCurrentEpoch indicates an expected call of AddToUserMap
+func (mr *MockLogStorageMockRecorder) WriteCurrentEpoch (arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteCurrentEpoch", reflect.TypeOf((*MockLogStorage)(nil).WriteCurrentEpoch), arg0, arg1)
 }
 
 // CheckDatabaseAccessible mocks base method
