@@ -147,6 +147,19 @@ func (m *memoryLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, req
 	return nil, errors.New("Unimplemented")
 }
 
+func (m *memoryLogStorage) AddInProgressTransaction(ctx context.Context, tree *trillian.Tree, request *UserTypes.InProgressTransactionData) (storage.LogTreeTX, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+func (m *memoryLogStorage) DeleteInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64, transactionId int64) (storage.LogTreeTX, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+func (m *memoryLogStorage) GetInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+
 func (m *memoryLogStorage) QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, queueTimestamp time.Time, tx storage.LogTreeTX) ([]*trillian.QueuedLogLeaf, error) {
 	return nil, errors.New("Unimplemented")
 }
@@ -288,6 +301,19 @@ func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapCo
 func (t *logTreeTX) GetKeys (ctx context.Context, request *trillian.UserReadLeafRequest) ([]string, error) {
         return nil, errors.New ("Unimplemented")
 }
+
+func (t *logTreeTX) AddInProgressTransaction (ctx context.Context, request *UserTypes.InProgressTransactionData) error {
+	return errors.New("Unimplemented")
+}
+
+func (t *logTreeTX) DeleteInProgressTransaction (ctx context.Context, logId int64, transactionId int64) error {
+	return errors.New("Unimplemented")
+}
+
+func (t* logTreeTX) GetInProgressTransaction(ctx context.Context, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
+	return nil, errors.New("Unimplemented")
+}
+
 
 func (t *logTreeTX) ReadRevision(ctx context.Context) (int64, error) {
 	return int64(t.root.Revision), nil

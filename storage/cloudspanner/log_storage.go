@@ -197,6 +197,19 @@ func (ls *logStorage) WriteCurrentEpoch(ctx context.Context, timestamp int64) er
         return errors.New("Unimplemented")
 }
 
+func (ls *logStorage) AddInProgressTransaction(ctx context.Context, tree *trillian.Tree, request *UserTypes.InProgressTransactionData) (storage.LogTreeTX, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+func (ls *logStorage) DeleteInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64, transactionId int64) (storage.LogTreeTX, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+func (ls *logStorage) GetInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+
 func (ls *logStorage) SnapshotForTree(ctx context.Context, tree *trillian.Tree) (storage.ReadOnlyLogTreeTX, error) {
 	return ls.begin(ctx, tree, true /* readonly */, ls.ts.client.ReadOnlyTransaction())
 }
@@ -353,6 +366,19 @@ func (tx *logTX) GetKeys (ctx context.Context, request *trillian.UserReadLeafReq
 func (tx *logTX) getLogStorageConfig() *spannerpb.LogStorageConfig {
 	return tx.config.(*spannerpb.LogStorageConfig)
 }
+
+func (t *logTX) AddInProgressTransaction (ctx context.Context, request *UserTypes.InProgressTransactionData) error {
+	return errors.New("Unimplemented")
+}
+
+func (t *logTX) DeleteInProgressTransaction (ctx context.Context, logId int64, transactionId int64) error {
+	return errors.New("Unimplemented")
+}
+
+func (t* logTX) GetInProgressTransaction(ctx context.Context, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
+	return nil, errors.New("Unimplemented")
+}
+/* End of Nick's stuff. */
 
 // LatestSignedLogRoot returns the freshest SignedLogRoot for this log at the
 // time the transaction was started.

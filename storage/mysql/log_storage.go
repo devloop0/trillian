@@ -51,6 +51,9 @@ const (
         deleteUserMap = "DELETE FROM PublicKeyMaps WHERE TreeId=? AND UserId=? AND PublicKey=?"
 	getUserKeys = "SELECT PublicKey FROM PublicKeyMaps WHERE TreeID=? AND UserId=? AND Identifiers=?"
 	insertEpoch = "INSERT INTO Epochs(Epoch) VALUES(?)"
+	insertInProgress = "INSERT INTO InProgress(TreeId,TransactionId,NodeCount) VALUES(?,?,?)"
+	deleteInProgress = "DELETE FROM InProgress WHERE TreeId=? AND TransactionId=?"
+	getInProgress = "SELECT TreeId,TransactionId,NodeCount FROM InProgress WHERE TreeId=? AND TransactionId=?"
 
 	selectNonDeletedTreeIDByTypeAndStateSQL = `
 		SELECT TreeId FROM Trees
@@ -345,6 +348,43 @@ func (m *mySQLLogStorage) WriteCurrentEpoch(ctx context.Context, timestamp int64
 	return nil
 }
 
+func (m *mySQLLogStorage) AddInProgressTransaction(ctx context.Context, tree *trillian.Tree, request *UserTypes.InProgressTransactionData) (storage.LogTreeTX, error) {
+	tx, err := m.beginInternal(ctx, tree)
+	if err != nil && err != storage.ErrTreeNeedsInit {
+		return nil, err
+	}
+	err = tx.AddInProgressTransaction(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func (m *mySQLLogStorage) DeleteInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64, transactionId int64) (storage.LogTreeTX, error) {
+	tx, err := m.beginInternal(ctx, tree)
+	if err != nil && err != storage.ErrTreeNeedsInit {
+		return nil, err
+	}
+	err = tx.DeleteInProgressTransaction(ctx, logId, transactionId)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func (m *mySQLLogStorage) GetInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64,transactionId int64) (*UserTypes.InProgressTransactionData, error) {
+	tx, err := m.beginInternal(ctx, tree)
+	if err != nil && err != storage.ErrTreeNeedsInit {
+		return nil, err
+	}
+	defer tx.Close()
+	transaction, err := tx.GetInProgressTransaction(ctx, logId, transactionId)
+	if err != nil {
+		return nil, err
+	}
+	return transaction, tx.Commit()
+}
+
 //End of Nick's stuff
 
 func (m *mySQLLogStorage) AddSequencedLeaves(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, timestamp time.Time) ([]*trillian.QueuedLogLeaf, error) {
@@ -485,6 +525,42 @@ func (t *logTreeTX) GetKeys (ctx context.Context, request *trillian.UserReadLeaf
 	}
 	return keys, nil
 }
+
+func (t *logTreeTX) AddInProgressTransaction (ctx context.Context, request *UserTypes.InProgressTransactionData) error {
+	_, err := t.tx.ExecContext(ctx, insertInProgress, request.LogId, request.TransactionId, request.NodeCount)
+	return err
+}
+
+func (t *logTreeTX) DeleteInProgressTransaction (ctx context.Context, logId int64, transactionId int64) error {
+	_, err := t.tx.ExecContext(ctx, deleteInProgress, logId, transactionId)
+	return err
+}
+
+func (t* logTreeTX) GetInProgressTransaction(ctx context.Context, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
+	rows, err := t.tx.QueryContext(ctx, getInProgress, logId, transactionId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	transaction := UserTypes.InProgressTransactionData{LogId: 0, TransactionId: 0, NodeCount: 0}
+	count := 0
+	for rows.Next() {
+		var logId int64
+		var transactionId int64
+		var nodeCount int64
+		err = rows.Scan(&logId, &transactionId, &nodeCount)
+		if err != nil {
+			return nil, err
+		}
+		transaction = UserTypes.InProgressTransactionData{LogId: logId, TransactionId: transactionId, NodeCount: nodeCount}
+		count += 1
+	}
+	if count != 1 {
+		return nil, errors.New("Expected one in-progress transaction with this id.")
+	}
+	return &transaction, nil
+}
+
 /* End of Nick's stuff. */
 
 func (t *logTreeTX) ReadRevision(ctx context.Context) (int64, error) {

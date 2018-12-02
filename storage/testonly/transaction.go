@@ -132,6 +132,18 @@ func (f* FakeLogStorage) WriteCurrentEpoch(ctx context.Context, timestamp int64)
 	return errors.New("Unimplemented")
 }
 
+func (f* FakeLogStorage) AddInProgressTransaction(ctx context.Context, tree *trillian.Tree, request *UserTypes.InProgressTransactionData) (storage.LogTreeTX, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+func (f* FakeLogStorage) DeleteInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64, transactionId int64) (storage.LogTreeTX, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+func (f* FakeLogStorage) GetInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
+	return nil, errors.New("Unimplemented")
+}
+
 func (f *FakeLogStorage) QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, queueTimestamp time.Time, tx storage.LogTreeTX) ([]*trillian.QueuedLogLeaf, error) {
 	return nil, errors.New("Unimplemented")
 }

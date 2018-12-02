@@ -86,6 +86,11 @@ type LogTreeTX interface {
 
         GetKeys (ctx context.Context, request *trillian.UserReadLeafRequest) ([]string, error)
 
+	AddInProgressTransaction(ctx context.Context, request *UserTypes.InProgressTransactionData) error
+
+	DeleteInProgressTransaction(ctx context.Context, logId int64, transactionId int64) error
+
+	GetInProgressTransaction(ctx context.Context, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error)
 
 	// QueueLeaves enqueues leaves for later integration into the tree.
 	// If error is nil, the returned slice of leaves will be the same size as the
@@ -170,6 +175,11 @@ type LogStorage interface {
 
 	QueueLeafs(ctx context.Context, tree *trillian.Tree, leaves []*trillian.LogLeaf, queueTimestamp time.Time, tx LogTreeTX) ([]*trillian.QueuedLogLeaf, error)
 
+	AddInProgressTransaction(ctx context.Context, tree *trillian.Tree, request *UserTypes.InProgressTransactionData) (LogTreeTX, error)
+
+	DeleteInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64, transactionId int64) (LogTreeTX, error)
+
+	GetInProgressTransaction(ctx context.Context, tree *trillian.Tree, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error)
 
 	//End of Nick
 
