@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/google/trillian"
 	"github.com/google/trillian/extension"
 	"github.com/google/trillian/monitoring"
 	"github.com/google/trillian/storage"
