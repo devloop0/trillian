@@ -357,7 +357,7 @@ func (s *preorderedLogSequencingTask) update(ctx context.Context, leaves []*tril
 }
 
 // Nick's Function(s)
-func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian.Tree, limit int, guardWindow, maxRootDurationInterval time.Duration) (int, error) {
+func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian.Tree, limit int, guardWindow, maxRootDurationInterval time.Duration, ignoreBatchSize bool) (int, error) {
 	start := s.timeSource.Now()
 	label := strconv.FormatInt(tree.TreeId, 10)
 
@@ -411,34 +411,39 @@ func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian
 		keepFetching := true
 		hasUpdate := false
 		nodeMap := make(map[string]storage.Node)
+		counter := 10
 		for  ; keepFetching ; {
 			sequencedLeaves, err := st.fetch(ctx, limit, start.Add(-guardWindow))
 			if err != nil {
 				glog.Warningf("%v: Sequencer failed to load sequenced batch: %v", tree.TreeId, err)
 				return err
 			}
-			numLeaves = len(sequencedLeaves)
-			if (numLeaves != 0) {
-				hasUpdate = true
+			tempLeaves := len(sequencedLeaves)
+			numLeaves += tempLeaves
+			if ignoreBatchSize && counter > 0 {
+				counter -= 1
+			} else {
+				limit -= tempLeaves
 			}
-			limit -= numLeaves
 
-			keepFetching = limit != 0
+			keepFetching = limit > 0
 			// Break out of the fetching loop when we run out of leaves
-			if numLeaves == 0 {
+			if tempLeaves == 0 {
 				break
 			}
 			if (!hasUpdate) {
 				stageStart = s.timeSource.Now()
 				merkleTree, err = s.initMerkleTreeFromStorage(ctx, &currentRoot, tx)
 				if err != nil {
+					glog.Warningf("%v: Sequencer unable to load a tree: %v", tree.TreeId, err)
 					return err
 				}
 				seqInitTreeLatency.Observe(util.SecondsSince(s.timeSource, stageStart), label)
 				stageStart = s.timeSource.Now()
 				hasUpdate = true
-				newVersion, err := tx.WriteRevision(ctx)
+				newVersion, err = tx.WriteRevision(ctx)
 				if err != nil {
+					glog.Warningf("%v: Sequencer unable to get a new write version: %v", tree.TreeId, err)
 					return err
 				}
 				// We've done all the reads, can now do the updates in the same transaction.
@@ -458,14 +463,15 @@ func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian
 			// Collate node updates.
 			nodeMap, err = s.updateTransactionCompactTree(merkleTree, sequencedLeaves, label, nodeMap)
 			if err != nil {
+				glog.Warningf("%v: Sequencer unable to update tree: %v", tree.TreeId, err)
 				return err
 			}
 			seqWriteTreeLatency.Observe(util.SecondsSince(s.timeSource, stageStart), label)
 			// Store the sequenced batch.
 			// Should require no changes as only updates index number.
 			if err := st.update(ctx, sequencedLeaves); err != nil {
+				glog.Warningf("%v: Sequencer unable to update indices: %v", tree.TreeId, err)
 				return err
-
 			}
 		}
 		if (!hasUpdate) {
@@ -485,6 +491,7 @@ func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian
 			return nil
 		})
 		if err != nil {
+			glog.Warningf("%v: Sequencer unable to update root: %v", tree.TreeId, err)
 			return err
 		}
 

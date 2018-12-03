@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-	"math"
 	"github.com/golang/glog"
 	"github.com/google/trillian/cmd"
 	"github.com/google/trillian/extension"
@@ -150,9 +149,8 @@ func main() {
 	sequencerManager := server.NewSequencerManager(registry, *sequencerGuardWindowFlag)
 
 	if (*ignoreBatchSizeFlag) {
-		*batchSizeFlag = math.MaxInt64
+		*batchSizeFlag = 10000
 	}
-
 	info := server.LogOperationInfo{
 		Registry:    registry,
 		BatchSize:   *batchSizeFlag,
@@ -169,6 +167,7 @@ func main() {
 		//Nick's additions
 		TrxnWrites : *transactionWritesFlag,
 		ExtraChecks : *extraChecksFlag,
+		IgnoreBatchSize: *ignoreBatchSizeFlag,
 		//End of Nick's additions 
 	}
 	sequencerTask := server.NewLogOperationManager(info, sequencerManager)

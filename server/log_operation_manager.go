@@ -101,6 +101,9 @@ type LogOperationInfo struct {
 
 	// True if multiple checks should occur in a single tree update.
 	ExtraChecks bool
+
+	// True if more updates should be attempted beyond the batch size.
+	IgnoreBatchSize bool
 }
 
 // LogOperationManager controls scheduling activities for logs.

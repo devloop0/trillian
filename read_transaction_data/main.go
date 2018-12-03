@@ -26,6 +26,8 @@ const txWrite int64 = 2
 
 const useTrillianAPI = false
 
+const useTransactions = true
+
 type tx struct {
 	txType int64
 	logId int64
@@ -101,6 +103,7 @@ func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, t
 				return err;
 			}
 		}
+		time.Sleep (10 * time.Millisecond)
 	}
 	return nil
 }
@@ -121,9 +124,11 @@ func main() {
 	}
 	client := trillian.NewTrillianLogClient(conn)
 
-	err = writeTransactions(ctx, client, txData)
-	if err != nil {
-		log.Fatal("Could not write data")
+	if (useTransactions) {
+		err = writeTransactions(ctx, client, txData)
+		if err != nil {
+			log.Fatal("Could not write data")
+		}
 	}
 
 	logId := txData[0].logId

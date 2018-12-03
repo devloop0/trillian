@@ -17,7 +17,7 @@ initialize_log_server:
 	../trillian_log_server -rpc_endpoint "localhost:8090" -http_endpoint "localhost:8091" &
 
 initialize_log_signer:
-	../trillian_log_signer --force_master -rpc_endpoint "localhost:8092" -http_endpoint "localhost:8093" -batch_size=1 -sequencer_interval=1ms &
+	../trillian_log_signer --force_master -rpc_endpoint "localhost:8092" -http_endpoint "localhost:8093" -batch_size=1 -sequencer_interval=50ms -extra_checks=true -ignore_batch_size=true &
 
 initialize_log_id:
 	sleep 2

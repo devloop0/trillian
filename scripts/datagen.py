@@ -8,7 +8,7 @@ import sys
 """
 
 
-USER_COUNT = 1 #Number of distinct users to create. If None users will be
+USER_COUNT = 15 #Number of distinct users to create. If None users will be
                  #created until the max leaf total is reached and the previous
                  #number of users will be used.
 
@@ -16,7 +16,7 @@ MAX_LEAF_COUNT = None #Maximum number of leaves generated for the dataset. If
                       #the value is None then the number of leaves will depend
                       #solely on the distribution for the user count.
 
-LAMBDA = 5 #1 less than the Mean number of leaves per user. Number of a leaves
+LAMBDA = 15 #1 less than the Mean number of leaves per user. Number of a leaves
             #for a user is sampled from a poisson distribution with mean lambda
             #and then 1 is added so all users have at least 1 leaf.
 
