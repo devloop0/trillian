@@ -177,6 +177,83 @@ func (c *CompactMerkleTree) AddLeaf(data []byte, f setNodeFunc) (int64, []byte, 
 	return seq, h, err
 }
 
+// Nick's Function(s)
+
+// Updates the Merkle Tree after a batch of transactions
+func (c *CompactMerkleTree) UpdateTransactionRoot (f setNodeFunc) error {
+	return c.recalculateRoot (f)
+}
+
+
+// AddLeafHash adds the specified |leafHash| to the tree.
+// |f| is a callback which will be called multiple times with the full MerkleTree coordinates of nodes whose hash should be updated.
+func (c *CompactMerkleTree) AddTransactionLeafHash(leafHash []byte, f setNodeFunc) (int64, error) {
+	defer func() {
+		c.size++
+	}()
+
+	assignedSeq := c.size
+	index := assignedSeq
+
+	if err := f(0, index, leafHash); err != nil {
+		return 0, err
+	}
+
+	if c.size == 0 {
+		// new tree
+		c.nodes = append(c.nodes, leafHash)
+		return assignedSeq, nil
+	}
+
+	// Initialize our running hash value to the leaf hash
+	hash := leafHash
+	bit := 0
+	// Iterate over the bits in our tree size
+	for t := c.size; t > 0; t >>= 1 {
+		index >>= 1
+		if t&1 == 0 {
+			// Just store the running hash here; we're done.
+			c.nodes[bit] = hash
+			// Don't re-write the leaf hash node (we've done it above already)
+			if bit > 0 {
+				// Store the leaf hash node
+				if err := f(bit, index, hash); err != nil {
+					return 0, err
+				}
+			}
+			return assignedSeq, nil
+		}
+		// The bit is set so we have a node at that position in the nodes list so hash it with our running hash:
+		hash = c.hasher.HashChildren(c.nodes[bit], hash)
+		// Store the resulting parent hash.
+		if err := f(bit+1, index, hash); err != nil {
+			return 0, err
+		}
+		// Now, clear this position in the nodes list as the hash it formerly contained will be propagated upwards.
+		c.nodes[bit] = nil
+		// Figure out if we're done:
+		if bit+1 >= len(c.nodes) {
+			// If we're extending the node list then add a new entry with our
+			// running hash, and we're done.
+			c.nodes = append(c.nodes, hash)
+			return assignedSeq, nil
+		} else if t&0x02 == 0 {
+			// If the node above us is unused at this tree size, then store our
+			// running hash there, and we're done.
+			c.nodes[bit+1] = hash
+			return assignedSeq, nil
+		}
+		// Otherwise, go around again.
+		bit++
+	}
+	// We should never get here, because that'd mean we had a running hash which
+	// we've not stored somewhere.
+	return 0, fmt.Errorf("AddLeaf failed running hash not cleared: h: %v seq: %d", leafHash, assignedSeq)
+}
+
+
+// End of Nick's Function(s)
+
 // AddLeafHash adds the specified |leafHash| to the tree.
 // |f| is a callback which will be called multiple times with the full MerkleTree coordinates of nodes whose hash should be updated.
 func (c *CompactMerkleTree) AddLeafHash(leafHash []byte, f setNodeFunc) (int64, error) {

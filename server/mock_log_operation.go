@@ -46,6 +46,19 @@ func (mr *MockLogOperationMockRecorder) ExecutePass(arg0, arg1, arg2 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecutePass", reflect.TypeOf((*MockLogOperation)(nil).ExecutePass), arg0, arg1, arg2)
 }
 
+// ExecuteTransactionPass mocks base method
+func (m *MockLogOperation) ExecuteTransactionPass(arg0 context.Context, arg1 int64, arg2 *LogOperationInfo) (int, error) {
+	ret := m.ctrl.Call(m, "ExecuteTransactionPass", arg0, arg1, arg2)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExecuteTransactionPass indicates an expected call of ExecuteTransactionPass
+func (mr *MockLogOperationMockRecorder) ExecuteTransactionPass(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecuteTransactionPass", reflect.TypeOf((*MockLogOperation)(nil).ExecuteTransactionPass), arg0, arg1, arg2)
+}
+
 // Name mocks base method
 func (m *MockLogOperation) Name() string {
 	ret := m.ctrl.Call(m, "Name")

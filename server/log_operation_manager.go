@@ -64,6 +64,9 @@ type LogOperation interface {
 	// ExecutePass performs a single pass of processing on a single log.  It returns
 	// a count of items processed (for logging) and an error.
 	ExecutePass(ctx context.Context, logID int64, info *LogOperationInfo) (int, error)
+
+	// Nick's Method
+	ExecuteTransactionPass(ctx context.Context, logID int64, info *LogOperationInfo) (int, error)
 }
 
 // LogOperationInfo bundles up information needed for running a set of LogOperations.
@@ -96,23 +99,8 @@ type LogOperationInfo struct {
 	// True if all writes are user transactions and not individual leaves
 	TrxnWrites bool
 
-	// True if work should be done in background.
-	IsBackground bool
-
-	// True if the BatchSize should be ignored as the maximum number of
-	// transactions to update.
-	IgnoreBatchSize bool
-
-	// The minimum number of transactions to update the tree.
-	// Only applies if processing is done in the background.
-	MinProcessing int
-
-	// True if updates can occur more frequently than allowed
-	// by the TimeSource. The TimeSource will always be reset
-	// after any update.
-	UseLooseTimer bool
-
-
+	// True if multiple checks should occur in a single tree update.
+	ExtraChecks bool
 }
 
 // LogOperationManager controls scheduling activities for logs.
@@ -273,6 +261,49 @@ func (l *LogOperationManager) updateHeldIDs(ctx context.Context, logIDs, allIDs 
 	}
 }
 
+//Nick's functions
+
+//Change the return type and edit
+func (l *LogOperationManager) getLogsAndExecuteTransactions(ctx context.Context) error {
+	allIDs, err := l.getLogIDs(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve full list of log IDs: %v", err)
+	}
+	logIDs, err := l.masterFor(ctx, allIDs)
+	if err != nil {
+		return fmt.Errorf("failed to determine log IDs we're master for: %v", err)
+	}
+	l.updateHeldIDs(ctx, logIDs, allIDs)
+	glog.V(1).Infof("Beginning run for %v active log(s)", len(logIDs))
+
+	// TODO(pavelkalinnikov): Run executor once instead of doing it on each pass.
+	// This will be also needed when factoring out per-log operation loop.
+	ex := newExecutor(l.logOperation, &l.info, len(logIDs))
+	// Put logIDs that need to be processed to the executor's channel.
+	for _, logID := range logIDs {
+		ex.jobs <- logID
+	}
+	close(ex.jobs) // Cause executor's run to terminate when it has drained the jobs.
+	ex.runTransactions(ctx)
+	return nil
+}
+
+//Change the contents and params
+func (l *LogOperationManager) updateRoots(ctx context.Context) error {
+	allIDs, err := l.getLogIDs(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve full list of log IDs: %v", err)
+	}
+	logIDs, err := l.masterFor(ctx, allIDs)
+	if err != nil {
+		return fmt.Errorf("failed to determine log IDs we're master for: %v", err)
+	}
+	l.updateHeldIDs(ctx, logIDs, allIDs)
+	return nil
+}
+
+//End of Nick's functions
+
 func (l *LogOperationManager) getLogsAndExecutePass(ctx context.Context) error {
 	allIDs, err := l.getLogIDs(ctx)
 	if err != nil {
@@ -309,57 +340,111 @@ func (l *LogOperationManager) OperationSingle(ctx context.Context) {
 func (l *LogOperationManager) OperationLoop(ctx context.Context) {
 	glog.Infof("Log operation manager starting")
 
-	// Outer loop, runs until terminated
-loop:
-	for {
-		// TODO(alcutter): want a child context with deadline here?
-		start := l.info.TimeSource.Now()
+	// Nick's change
+	if (l.info.ExtraChecks) {
+	loop1:	for {
+			//Get start time
+			start := l.info.TimeSource.Now ()
 
-		// UNCOMMENT THIS TO ADD EPOCH SUPPORT, COMMENTED TO MAKE SURE TESTS DON'T FAIL
-		//_ = l.info.Registry.LogStorage.WriteCurrentEpoch(ctx, start.UnixNano() / int64(time.Millisecond))
-		if err := l.getLogsAndExecutePass(ctx); err != nil {
-			// Suppress the error if ctx is done (ok==false) as we're exiting.
-			if _, ok := <-ctx.Done(); ok {
-				glog.Errorf("failed to execute operation on logs: %v", err)
+			//Process updates
+
+			// UNCOMMENT THIS TO ADD EPOCH SUPPORT, COMMENTED TO MAKE SURE TESTS DON'T FAIL
+			//_ = l.info.Registry.LogStorage.WriteCurrentEpoch(ctx, start.UnixNano() / int64(time.Millisecond))
+
+			// Change the execute pass to become background work
+			if err := l.getLogsAndExecuteTransactions(ctx); err != nil {
+				// Suppress the error if ctx is done (ok==false) as we're exiting.
+				if _, ok := <-ctx.Done(); ok {
+					glog.Errorf("failed to execute operation on logs: %v", err)
+				}
 			}
-		}
-		glog.V(1).Infof("Log operation manager pass complete")
+			glog.V(1).Infof("Log operation manager pass complete")
 
-		// See if it's time to quit
-		select {
-		case <-ctx.Done():
-			glog.Infof("Log operation manager shutting down")
-			break loop
-		default:
-		}
-
-		// Process any pending resignations while there's no activity.
-		doneResigning := false
-		for !doneResigning {
+			//Check to quit
 			select {
-			case r := <-l.pendingResignations:
-				resignations.Inc(r.ID)
-				r.Execute(ctx)
-			default:
-				doneResigning = true
-			}
-		}
-
-		// Wait for the configured time before going for another pass
-		duration := l.info.TimeSource.Now().Sub(start)
-		wait := l.info.RunInterval - duration
-		if wait > 0 {
-			glog.V(1).Infof("Processing started at %v for %v; wait %v before next run", start, duration, wait)
-			if err := util.SleepContext(ctx, wait); err != nil {
+			case <-ctx.Done():
 				glog.Infof("Log operation manager shutting down")
-				break loop
+				break loop1
+			default:
 			}
-		} else {
-			glog.V(1).Infof("Processing started at %v for %v; start next run immediately", start, duration)
+
+			//Update resignations
+			doneResigning := false
+			for !doneResigning {
+				select {
+				case r := <-l.pendingResignations:
+					resignations.Inc(r.ID)
+					r.Execute(ctx)
+				default:
+					doneResigning = true
+				}
+			}
+
+			//If not background sleep for remaining time
+			duration := l.info.TimeSource.Now().Sub(start)
+			wait := l.info.RunInterval - duration
+			if (wait > 0) {
+				glog.V(1).Infof("Processing started at %v for %v; wait %v before next run", start, duration, wait)
+				if err := util.SleepContext(ctx, wait); err != nil {
+					glog.Infof("Log operation manager shutting down")
+					break loop1
+				}
+			} else {
+				glog.V(1).Infof("Processing started at %v for %v; start next run immediately", start, duration)
+			}
 		}
+	} else {
+		// Outer loop, runs until terminated
+	loop2:
+		for {
+			// TODO(alcutter): want a child context with deadline here?
+			start := l.info.TimeSource.Now()
 
+			// UNCOMMENT THIS TO ADD EPOCH SUPPORT, COMMENTED TO MAKE SURE TESTS DON'T FAIL
+			//_ = l.info.Registry.LogStorage.WriteCurrentEpoch(ctx, start.UnixNano() / int64(time.Millisecond))
+			if err := l.getLogsAndExecutePass(ctx); err != nil {
+				// Suppress the error if ctx is done (ok==false) as we're exiting.
+				if _, ok := <-ctx.Done(); ok {
+					glog.Errorf("failed to execute operation on logs: %v", err)
+				}
+			}
+			glog.V(1).Infof("Log operation manager pass complete")
+
+			// See if it's time to quit
+			select {
+			case <-ctx.Done():
+				glog.Infof("Log operation manager shutting down")
+				break loop2
+			default:
+			}
+
+			// Process any pending resignations while there's no activity.
+			doneResigning := false
+			for !doneResigning {
+				select {
+				case r := <-l.pendingResignations:
+					resignations.Inc(r.ID)
+					r.Execute(ctx)
+				default:
+					doneResigning = true
+				}
+			}
+
+			// Wait for the configured time before going for another pass
+			duration := l.info.TimeSource.Now().Sub(start)
+			wait := l.info.RunInterval - duration
+			if wait > 0 {
+				glog.V(1).Infof("Processing started at %v for %v; wait %v before next run", start, duration, wait)
+				if err := util.SleepContext(ctx, wait); err != nil {
+					glog.Infof("Log operation manager shutting down")
+					break loop2
+				}
+			} else {
+				glog.V(1).Infof("Processing started at %v for %v; start next run immediately", start, duration)
+			}
+
+		}
 	}
-
 	// Terminate all the election runners
 	for logID, runner := range l.electionRunner {
 		if runner == nil {
@@ -423,6 +508,70 @@ func (e *logOperationExecutor) run(ctx context.Context) {
 				count, err := e.op.ExecutePass(ctx, logID, e.info)
 				if err != nil {
 					glog.Errorf("ExecutePass(%v) failed: %v", logID, err)
+					failedSigningRuns.Inc(label)
+					atomic.AddInt64(&failCount, 1)
+					continue
+				}
+
+				// This indicates signing activity is proceeding on the logID.
+				signingRuns.Inc(label)
+				if count > 0 {
+					d := util.SecondsSince(e.info.TimeSource, start)
+					glog.Infof("%v: processed %d items in %.2f seconds (%.2f qps)", logID, count, d, float64(count)/d)
+					// This allows an operator to determine that the queue is empty for a
+					// particular log if signing runs are succeeding but nothing is being
+					// processed then this counter will stop increasing.
+					entriesAdded.Add(float64(count), label)
+				} else {
+					glog.V(1).Infof("%v: no items to process", logID)
+				}
+
+				atomic.AddInt64(&successCount, 1)
+				atomic.AddInt64(&itemCount, int64(count))
+			}
+		}()
+	}
+
+	// Wait for the workers to consume all of the logIDs.
+	wg.Wait()
+	d := util.SecondsSince(e.info.TimeSource, startBatch)
+	if itemCount > 0 {
+		glog.Infof("Group run completed in %.2f seconds: %v succeeded, %v failed, %v items processed", d, successCount, failCount, itemCount)
+	} else {
+		glog.V(1).Infof("Group run completed in %.2f seconds: no items to process", d)
+	}
+}
+
+
+// Nick's run
+func (e *logOperationExecutor) runTransactions(ctx context.Context) {
+	startBatch := e.info.TimeSource.Now()
+
+	numWorkers := e.info.NumWorkers
+	if numWorkers <= 0 {
+		glog.Warning("Running executor with NumWorkers <= 0, assuming 1")
+		numWorkers = 1
+	}
+	glog.V(1).Infof("Running executor with %d worker(s)", numWorkers)
+
+	var wg sync.WaitGroup
+	var successCount, failCount, itemCount int64
+
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				logID, ok := <-e.jobs
+				if !ok {
+					return
+				}
+
+				label := strconv.FormatInt(logID, 10)
+				start := e.info.TimeSource.Now()
+				count, err := e.op.ExecuteTransactionPass(ctx, logID, e.info)
+				if err != nil {
+					glog.Errorf("ExecuteTransactionsPass(%v) failed: %v", logID, err)
 					failedSigningRuns.Inc(label)
 					atomic.AddInt64(&failCount, 1)
 					continue

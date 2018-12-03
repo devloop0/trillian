@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"os"
 	"time"
-
+	"math"
 	"github.com/golang/glog"
 	"github.com/google/trillian/cmd"
 	"github.com/google/trillian/extension"
@@ -73,10 +73,8 @@ var (
 
 	//Nick's flags for concurrency
 	transactionWritesFlag = flag.Bool("use_trxns", false, "If true all batch sizes refer to whole transactions rather than individual nodes.")
-	backgroundWorkFlag = flag.Bool("do_background_work", false, "If true the signer will potentially process in the background depending on other flags.")
-	ignoreBatchSizeFlag = flag.Bool("ignore_batch_size", false, "If true and the signer is doing background work it will ignore the batch size limitation on a transaction.")
-	useLooseTimerFlag = flag.Bool ("use_loose_timer", false, "If true then the signer may update the tree more frequently than the given timer if the information is ready.")
-	processingMinFlag = flag.Int("process_min", 0, "Sets a minimum number of transactions that must be in the queue to begin background processing. If -1 then the value is the batch_size. If the value is greater than the batch_size then it will be reduced to the batch_size.")
+	extraChecksFlag = flag.Bool("extra_checks", false, "If true the signer will check mulitple times when updating the tree.")
+	ignoreBatchSizeFlag = flag.Bool("ignore_batch_size", false, "If true it will ignore the batch size limitation on a transaction.")
 )
 
 func main() {
@@ -151,11 +149,9 @@ func main() {
 	log.QuotaIncreaseFactor = *quotaIncreaseFactor
 	sequencerManager := server.NewSequencerManager(registry, *sequencerGuardWindowFlag)
 
-	//Nick's flag parsing
-	if *processingMinFlag < *batchSizeFlag || *processingMinFlag < 0 {
-		*processingMinFlag = *batchSizeFlag
+	if (*ignoreBatchSizeFlag) {
+		*batchSizeFlag = math.MaxInt64
 	}
-	//End of Nick's flag parsing
 
 	info := server.LogOperationInfo{
 		Registry:    registry,
@@ -172,10 +168,7 @@ func main() {
 		},
 		//Nick's additions
 		TrxnWrites : *transactionWritesFlag,
-		IsBackground : *backgroundWorkFlag,
-		IgnoreBatchSize : *ignoreBatchSizeFlag,
-		MinProcessing : *processingMinFlag,
-		UseLooseTimer : *useLooseTimerFlag,
+		ExtraChecks : *extraChecksFlag,
 		//End of Nick's additions 
 	}
 	sequencerTask := server.NewLogOperationManager(info, sequencerManager)

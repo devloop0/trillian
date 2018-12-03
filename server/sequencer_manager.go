@@ -91,6 +91,42 @@ func (s *SequencerManager) ExecutePass(ctx context.Context, logID int64, info *L
 	return leaves, nil
 }
 
+// Nick's Function(s)
+func (s *SequencerManager) ExecuteTransactionPass(ctx context.Context, logID int64, info *LogOperationInfo) (int, error) {
+	// TODO(Martin2112): Honor the sequencing enabled in log parameters, needs an API change
+	// so deferring it
+
+	tree, err := trees.GetTree(ctx, s.registry.AdminStorage, logID, seqOpts)
+	if err != nil {
+		return 0, fmt.Errorf("error retrieving log %v: %v", logID, err)
+	}
+	ctx = trees.NewContext(ctx, tree)
+
+	hasher, err := hashers.NewLogHasher(tree.HashStrategy)
+	if err != nil {
+		return 0, fmt.Errorf("error getting hasher for log %v: %v", logID, err)
+	}
+
+	signer, err := s.getSigner(ctx, tree)
+	if err != nil {
+		return 0, fmt.Errorf("error getting signer for log %v: %v", logID, err)
+	}
+	sequencer := log.NewSequencer(hasher, info.TimeSource, s.registry.LogStorage, signer, s.registry.MetricFactory, s.registry.QuotaManager)
+
+	maxRootDuration, err := ptypes.Duration(tree.MaxRootDuration)
+	if err != nil {
+		glog.Warning("failed to parse tree.MaxRootDuration, using zero")
+		maxRootDuration = 0
+	}
+	leaves, err := sequencer.IntegrateTransactionBatch(ctx, tree, info.BatchSize, s.guardWindow, maxRootDuration)
+	if err != nil {
+		return 0, fmt.Errorf("failed to integrate batch for %v: %v", logID, err)
+	}
+	return leaves, nil
+}
+// End of Nick's Function(s)
+
+
 // getSigner returns a signer for the given tree.
 // Signers are cached, so only one will be created per tree.
 func (s *SequencerManager) getSigner(ctx context.Context, tree *trillian.Tree) (*tcrypto.Signer, error) {
