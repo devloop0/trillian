@@ -115,22 +115,22 @@ type adminTX struct {
 }
 
 func (t *adminTX) Commit() error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
+	// t.mu.Lock()
+	// defer t.mu.Unlock()
 	t.closed = true
 	return t.tx.Commit()
 }
 
 func (t *adminTX) Rollback() error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
+	// t.mu.Lock()
+	// defer t.mu.Unlock()
 	t.closed = true
 	return t.tx.Rollback()
 }
 
 func (t *adminTX) IsClosed() bool {
-	t.mu.RLock()
-	defer t.mu.RUnlock()
+	// t.mu.RLock()
+	// defer t.mu.RUnlock()
 	return t.closed
 }
 

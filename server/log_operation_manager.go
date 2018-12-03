@@ -56,6 +56,38 @@ func createMetrics(mf monitoring.MetricFactory) {
 	entriesAdded = mf.NewCounter("entries_added", "Number of entries added to the log", logIDLabel)
 }
 
+// Nick's Structs
+
+// Structure for holding the in memory data necessary for updating a transaction
+type TransactionDetails struct {
+
+	// Array which holds all of the actual leaves for a transaction that have
+	// been fetched so far.
+	Leaves []*trillian.LogLeaf
+
+	// Array which holds the information necessary to dequeue all of the leaves
+	// that have been fetched so far.
+	DequeueInfo [][]byte
+
+	// Holds the size of the Transaction. If the capacity is 0 then its size.
+	// is not currently known.
+	Capacity uint
+}
+
+
+// Structure for storing in progress transaction data in memory.
+type TransactionMemory struct {
+
+	// Array which holds the details for any pending transactions
+	Transactions []TransactionDetails
+
+	// Integer which stores how many of the most recent leaves are held
+	// in memory but not deleted from the queue on disk
+	Offset uint
+}
+
+// End of Nick's Structs
+
 // LogOperation defines a task that operates on a log. Examples are scheduling, signing,
 // consistency checking or cleanup.
 type LogOperation interface {

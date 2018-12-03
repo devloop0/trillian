@@ -206,6 +206,7 @@ func (s Sequencer) updateTransactionCompactTree(mt *merkle.CompactMerkleTree, le
 			seqMergeDelay.Observe(mergeDelay.Seconds(), label)
 		}
 
+		/*
 		// Store leaf hash in the Merkle tree too:
 		leafNodeID, err := storage.NewNodeIDForTreeCoords(0, seq, maxTreeDepth)
 		if err != nil {
@@ -215,6 +216,7 @@ func (s Sequencer) updateTransactionCompactTree(mt *merkle.CompactMerkleTree, le
 			NodeID: leafNodeID,
 			Hash:   leaf.MerkleLeafHash,
 		}
+		*/
 	}
 
 	return nodeMap, nil
@@ -260,6 +262,7 @@ func (s Sequencer) updateCompactTree(mt *merkle.CompactMerkleTree, leaves []*tri
 			seqMergeDelay.Observe(mergeDelay.Seconds(), label)
 		}
 
+		/*
 		// Store leaf hash in the Merkle tree too:
 		leafNodeID, err := storage.NewNodeIDForTreeCoords(0, seq, maxTreeDepth)
 		if err != nil {
@@ -269,6 +272,7 @@ func (s Sequencer) updateCompactTree(mt *merkle.CompactMerkleTree, leaves []*tri
 			NodeID: leafNodeID,
 			Hash:   leaf.MerkleLeafHash,
 		}
+		*/
 	}
 
 	return nodeMap, nil
