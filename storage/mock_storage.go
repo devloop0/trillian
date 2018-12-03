@@ -291,9 +291,54 @@ func (m *MockLogStorage) AddToUserMap(arg0 context.Context, arg1 *trillian.Tree,
 	return ret0, ret1
 }
 
+// WriteCurrentEpoch mocks base method
+func (m *MockLogStorage) WriteCurrentEpoch (arg0 context.Context, arg1 int64) error {
+	ret := m.ctrl.Call(m, "WriteCurrentEpoch", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (m *MockLogStorage) AddInProgressTransaction(arg0 context.Context, arg1 *trillian.Tree, arg2 *userTypes.InProgressTransactionData) (LogTreeTX, error) {
+	ret := m.ctrl.Call(m, "AddInProgressTransaction", arg0, arg1, arg2)
+	ret0, _ := ret[0].(LogTreeTX)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (m* MockLogStorage) DeleteInProgressTransaction(arg0 context.Context, arg1 *trillian.Tree, arg2 int64, arg3 int64) (LogTreeTX, error) {
+	ret := m.ctrl.Call(m, "DeleteInProgressTransaction", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(LogTreeTX)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (m* MockLogStorage) GetInProgressTransaction(arg0 context.Context, arg1 *trillian.Tree, arg2 int64, arg3 int64) (*userTypes.InProgressTransactionData, error) {
+	ret := m.ctrl.Call(m, "GetInProgressTransaction", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*userTypes.InProgressTransactionData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 // AddToUserMap indicates an expected call of AddToUserMap
 func (mr *MockLogStorageMockRecorder) AddToUserMap(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToUserMap", reflect.TypeOf((*MockLogStorage)(nil).AddToUserMap), arg0, arg1, arg2)
+}
+
+// WriteCurrentEpoch indicates an expected call of AddToUserMap
+func (mr *MockLogStorageMockRecorder) WriteCurrentEpoch (arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteCurrentEpoch", reflect.TypeOf((*MockLogStorage)(nil).WriteCurrentEpoch), arg0, arg1)
+}
+
+func (mr *MockLogStorageMockRecorder) AddInProgressTransaction(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddInProgressTransaction", reflect.TypeOf((*MockLogStorage)(nil).AddInProgressTransaction), arg0, arg1, arg2)
+}
+
+func (mr *MockLogStorageMockRecorder) DeleteInProgressTransaction(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteInProgressTransaction", reflect.TypeOf((*MockLogStorage)(nil).DeleteInProgressTransaction), arg0, arg1, arg2, arg3)
+}
+
+func (mr *MockLogStorageMockRecorder) GetInProgressTransaction(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInProgressTransaction", reflect.TypeOf((*MockLogStorage)(nil).GetInProgressTransaction), arg0, arg1, arg2, arg3)
 }
 
 // CheckDatabaseAccessible mocks base method
@@ -413,17 +458,6 @@ func (mr *MockLogStorageMockRecorder) SnapshotForTree(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SnapshotForTree", reflect.TypeOf((*MockLogStorage)(nil).SnapshotForTree), arg0, arg1)
 }
 
-// WriteCurrentEpoch mocks base method
-func (m *MockLogStorage) WriteCurrentEpoch(arg0 context.Context, arg1 int64) error {
-	ret := m.ctrl.Call(m, "WriteCurrentEpoch", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// WriteCurrentEpoch indicates an expected call of WriteCurrentEpoch
-func (mr *MockLogStorageMockRecorder) WriteCurrentEpoch(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteCurrentEpoch", reflect.TypeOf((*MockLogStorage)(nil).WriteCurrentEpoch), arg0, arg1)
-}
 
 // MockLogTreeTX is a mock of LogTreeTX interface
 type MockLogTreeTX struct {
@@ -466,6 +500,25 @@ func (m *MockLogTreeTX) AddToUserMap(arg0 context.Context, arg1 *userTypes.MapCo
 	ret := m.ctrl.Call(m, "AddToUserMap", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
+}
+
+func (m* MockLogTreeTX) AddInProgressTransaction(arg0 context.Context, arg1 *userTypes.InProgressTransactionData) error {
+	ret := m.ctrl.Call(m, "AddInProgressTransaction", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (m* MockLogTreeTX) DeleteInProgressTransaction(arg0 context.Context, arg1 int64, arg2 int64) error {
+	ret := m.ctrl.Call(m, "DeleteInProgressTransaction", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (m* MockLogTreeTX) GetInProgressTransaction(arg0 context.Context, arg1 int64, arg2 int64) (*userTypes.InProgressTransactionData, error) {
+	ret := m.ctrl.Call(m, "GetInProgressTransaction", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*userTypes.InProgressTransactionData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddToUserMap indicates an expected call of AddToUserMap

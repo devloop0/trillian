@@ -23,8 +23,8 @@ func NewLeafData (data []byte) (*trillian.LogLeaf) {
 	return &trillian.LogLeaf{LeafValue: data}
 }
 
-func PrepareLeafData (publicKey string, deviceId string) ([]byte, error) {
-	data, err := json.Marshal (UserTypes.CreateLeafData (publicKey, deviceId))
+func PrepareLeafData (publicKey string, deviceId string, transactionId int64) ([]byte, error) {
+	data, err := json.Marshal (UserTypes.CreateLeafData (publicKey, deviceId, transactionId))
 	if (err != nil) {
 		return nil, err
 	}
@@ -32,14 +32,20 @@ func PrepareLeafData (publicKey string, deviceId string) ([]byte, error) {
 }
 
 func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Registry, key *UserTypes.MapKey, deviceId string, newPk string) ([]*trillian.LogLeaf, storage.LogTreeTX, error){
+	transactionId := UserTypes.GenerateTransactionId()
 	if (key.PublicKey == "") {
-		data, err := PrepareLeafData (newPk, deviceId)
+		data, err := PrepareLeafData (newPk, deviceId, transactionId)
 		if err != nil {
 			return nil, nil, err
 		}
 		identity := UserTypes.CreateIdentity(key.UserId, newPk, deviceId)
 		contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, deviceId, identity)
 		tx, err := reg.LogStorage.AddToUserMap (ctx, tree, contents)
+		if err != nil {
+			return nil, nil, err
+		}
+		inProgress := UserTypes.InProgressTransactionData{LogId: key.LogId, TransactionId: transactionId, NodeCount: 1}
+		err = tx.AddInProgressTransaction(ctx, &inProgress)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -59,7 +65,7 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 		leaves := make([]*trillian.LogLeaf, 0)
 		for i, _ := range identifiers {
 			identifier, identity := identifiers[i], identities[i]
-			data, err := PrepareLeafData (newPk, identifier)
+			data, err := PrepareLeafData (newPk, identifier, transactionId)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -69,6 +75,11 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 			if err != nil {
 				return nil, nil, err
 			}
+		}
+		inProgress := UserTypes.InProgressTransactionData{LogId: key.LogId, TransactionId: transactionId, NodeCount: int64(len(leaves))}
+		err = tx.AddInProgressTransaction(ctx, &inProgress)
+		if err != nil {
+			return nil, nil, err
 		}
 		return leaves, tx, nil
 	}

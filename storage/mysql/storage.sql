@@ -37,6 +37,13 @@ CREATE TABLE IF NOT EXISTS Epochs(
   Epoch BIGINT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS InProgress(
+  TreeId	BIGINT NOT NULL,
+  TransactionId	BIGINT NOT NULL,
+  NodeCount	BIGINT NOT NULL,
+  PRIMARY KEY(TransactionId)
+);
+
 -- This table contains tree parameters that can be changed at runtime such as for
 -- administrative purposes.
 CREATE TABLE IF NOT EXISTS TreeControl(
