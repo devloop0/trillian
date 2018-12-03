@@ -135,7 +135,7 @@ the
 
 ```bash
 % mysql -u root
-MySQL> SET GLOBAL max_connections = 1000;
+MySQL> SET GLOBAL max_connections = 2000;
 ```
 
 ### Integration Tests
