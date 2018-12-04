@@ -92,6 +92,10 @@ type LogTreeTX interface {
 
 	GetInProgressTransaction(ctx context.Context, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error)
 
+	GetQueuedLeavesRange(ctx context.Context, start int, limit int, cutoff time.Time) ([]*trillian.LogLeaf, interface{}, error)
+
+	RemoveQueuedLeaves(ctx context.Context, queueIDs interface{}) error
+
 	// QueueLeaves enqueues leaves for later integration into the tree.
 	// If error is nil, the returned slice of leaves will be the same size as the
 	// input, and each entry will hold:

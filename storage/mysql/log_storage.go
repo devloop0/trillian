@@ -561,6 +561,79 @@ func (t* logTreeTX) GetInProgressTransaction(ctx context.Context, logId int64, t
 	return &transaction, nil
 }
 
+func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, startOffset int, limit int, cutoff time.Time) ([]*trillian.LogLeaf, interface{}, error) {
+	if t.treeType == trillian.TreeType_PREORDERED_LOG {
+		// TODO(pavelkalinnikov): Optimize this by fetching only the required
+		// fields of LogLeaf. We can avoid joining with LeafData table here.
+		leaves, _ := t.GetLeavesByRange(ctx, int64(t.root.TreeSize), int64(limit))
+		return leaves, nil, errors.New("Preordered Log not supported for concurrent transactions.")
+	}
+
+	start := time.Now()
+	stx, err := t.tx.PrepareContext(ctx, selectQueuedLeavesOffsetSQL)
+	if err != nil {
+		glog.Warningf("Failed to prepare dequeue select: %s", err)
+		return nil, nil, err
+	}
+	defer stx.Close()
+
+	leaves := make([]*trillian.LogLeaf, 0, limit)
+	dq := make([]dequeuedLeaf, 0, limit)
+	rows, err := stx.QueryContext(ctx, t.treeID, cutoff.UnixNano(), startOffset, limit)
+	if err != nil {
+		glog.Warningf("Failed to select rows for work: %s", err)
+		return nil, nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		leaf, dqInfo, err := t.dequeueLeaf(rows)
+		if err != nil {
+			glog.Warningf("Error dequeuing leaf: %v", err)
+			return nil, nil, err
+		}
+
+		if len(leaf.LeafIdentityHash) != t.hashSizeBytes {
+			return nil, nil, errors.New("dequeued a leaf with incorrect hash size")
+		}
+
+		leaves = append(leaves, leaf)
+		dq = append(dq, dqInfo)
+	}
+
+	if rows.Err() != nil {
+		return nil, nil, rows.Err()
+	}
+	label := labelForTX(t)
+	selectDuration := time.Since(start)
+	observe(dequeueSelectLatency, selectDuration, label)
+
+	totalDuration := time.Since(start)
+	removeDuration := totalDuration - selectDuration
+	observe(dequeueRemoveLatency, removeDuration, label)
+	observe(dequeueLatency, totalDuration, label)
+	dequeuedCounter.Add(float64(len(leaves)), label)
+
+	return leaves, dq, nil
+}
+
+func (t *logTreeTX) RemoveQueuedLeaves(ctx context.Context, queueIDs_ interface{}) error {
+	queueIDs, ok := queueIDs_.([]dequeuedLeaf)
+	if !ok {
+		return errors.New("Invalid argument for queueIDs")
+	}
+
+	var err error = nil
+	if len(queueIDs) > 0 {
+		err = t.removeSequencedLeaves(ctx, queueIDs)
+	}
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 /* End of Nick's stuff. */
 
 func (t *logTreeTX) ReadRevision(ctx context.Context) (int64, error) {

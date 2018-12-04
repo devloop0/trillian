@@ -310,10 +310,17 @@ func (t *logTreeTX) DeleteInProgressTransaction (ctx context.Context, logId int6
 	return errors.New("Unimplemented")
 }
 
-func (t* logTreeTX) GetInProgressTransaction(ctx context.Context, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
+func (t *logTreeTX) GetInProgressTransaction(ctx context.Context, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
 	return nil, errors.New("Unimplemented")
 }
 
+func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, start int, limit int, cutoff time.Time) ([]*trillian.LogLeaf, interface{}, error) {
+	return nil, nil, errors.New("Unimplemented")
+}
+
+func (t *logTreeTX) RemoveQueuedLeaves(ctx context.Context, queueIDs interface{}) error {
+	return errors.New("Unimplemented")
+}
 
 func (t *logTreeTX) ReadRevision(ctx context.Context) (int64, error) {
 	return int64(t.root.Revision), nil
