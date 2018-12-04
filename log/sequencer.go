@@ -22,7 +22,9 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"sort"
 	"errors"
+	"encoding/json"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/google/trillian"
@@ -33,6 +35,7 @@ import (
 	"github.com/google/trillian/storage"
 	"github.com/google/trillian/types"
 	"github.com/google/trillian/util"
+	"github.com/google/trillian/userTypes"
 
 	tcrypto "github.com/google/trillian/crypto"
 )
@@ -78,6 +81,10 @@ type TransactionDetails struct {
         // that have been fetched so far.
         DequeueInfo [][]byte
 
+	// Holds the ID for the current transaction. Same data should be in the
+	// leaves as well.
+	TrxnID int64
+
         // Holds the size of the Transaction. If the capacity is 0 then its size.
         // is not currently known.
         Capacity uint
@@ -88,7 +95,7 @@ type TransactionDetails struct {
 type TransactionMemory struct {
 
         // Array which holds the details for any pending transactions
-        Transactions []TransactionDetails
+        Transactions []*TransactionDetails
 
         // Integer which stores how many of the most recent leaves are held
         // in memory but not deleted from the queue on disk
@@ -329,7 +336,7 @@ type sequencingTask interface {
 	fetch(ctx context.Context, limit int, cutoff time.Time) ([]*trillian.LogLeaf, error)
 
 	// Function used for fetching sequenced entries for those using trnasactions
-	fetchTransaction(ctx context.Context, limit int, cutoff time.Time, transactionCache *TransactionMemory) ([]*trillian.LogLeaf, [][]byte, error)
+	fetchTransaction(ctx context.Context, tree *trillian.Tree, limit int, cutoff time.Time, transactionCache *TransactionMemory) ([]*trillian.LogLeaf, int, error)
 
 
 	// update makes sequencing persisted in storage, if not yet.
@@ -365,12 +372,95 @@ func (s *logSequencingTask) fetch(ctx context.Context, limit int, cutoff time.Ti
 	return leaves, nil
 }
 
-// Nick's Function
-func (s *logSequencingTask) fetchTransaction(ctx context.Context, limit int, cutoff time.Time, transactionCache *TransactionMemory) ([]*trillian.LogLeaf, [][]byte, error) {
+// Nick's Functions
+
+func extractCompletedTransactions(ctx context.Context, tree *trillian.Tree, transactionCache *TransactionMemory, limit int, s *logSequencingTask) ([]*trillian.LogLeaf, [][]byte, []int64, int, error) {
+	var leaves []*trillian.LogLeaf
+	var queueIDs [][]byte
+	var trxnIDs []int64
+	for i := 0; i < len (transactionCache.Transactions) && limit > 0; {
+		transaction := transactionCache.Transactions[i]
+		if transaction.Capacity == 0 {
+			data, err := s.tx.GetInProgressTransaction (ctx, tree.TreeId, transaction.TrxnID)
+			if err != nil {
+				return nil, nil, nil, 0, err
+			}
+			transaction.Capacity = uint (data.NodeCount)
+		}
+		if uint(len (transaction.Leaves)) == transaction.Capacity {
+			leaves = append (leaves, transaction.Leaves...)
+			queueIDs = append (queueIDs, transaction.DequeueInfo...)
+			trxnIDs = append (trxnIDs, transaction.TrxnID)
+			transactionCache.Offset -= transaction.Capacity
+			limit -= 1
+			endPoint := len (transactionCache.Transactions) - 1
+			transactionCache.Transactions[i], transactionCache.Transactions[endPoint] = transactionCache.Transactions[endPoint], transactionCache.Transactions[i]
+			transactionCache.Transactions = transactionCache.Transactions[:endPoint]
+		} else {
+			i++
+		}
+	}
+	return leaves, queueIDs, trxnIDs, limit, nil
+}
+
+func updateTransactionMemory (transactionCache *TransactionMemory, leaves []*trillian.LogLeaf, queueIDs [][]byte) error {
+	for j, leaf := range leaves {
+		unplaced := true
+		var leafData UserTypes.LeafData
+		err := json.Unmarshal (leaf.LeafValue, &leafData)
+		if err != nil {
+			return err
+		}
+		id := leafData.TransactionId
+		for i := 0; i < len (transactionCache.Transactions) && unplaced; i++ {
+			if (id == transactionCache.Transactions[i].TrxnID) {
+				trxn := transactionCache.Transactions[i]
+				unplaced = false
+				trxn.Leaves = append (trxn.Leaves, leaf)
+				trxn.DequeueInfo = append (trxn.DequeueInfo, queueIDs[j])
+			}
+		}
+		if unplaced {
+			trxn := &TransactionDetails{}
+			trxn.TrxnID = id
+			trxn.Leaves = append (trxn.Leaves, leaf)
+			trxn.DequeueInfo = append (trxn.DequeueInfo, queueIDs[j])
+			trxn.Capacity = 0
+			transactionCache.Transactions = append (transactionCache.Transactions, trxn)
+		}
+	}
+	transactionCache.Offset += uint(len(leaves))
+	return nil
+}
+
+func determineLeavesToFetch (transactionCache *TransactionMemory, limit int) int64 {
+	_lambda := int64(2) //heuristic size for unknown transactions
+	size := int64(len(transactionCache.Transactions))
+	var total int64
+	if int64(limit) < size {
+		leavesLeft := make ([]int64, len(transactionCache.Transactions))
+		for i, trxn := range transactionCache.Transactions {
+			leavesLeft[i] = int64(trxn.Capacity) - int64(len(trxn.Leaves))
+		}
+		sort.Slice (leavesLeft, func(i, j int) bool {return leavesLeft[i] < leavesLeft[j]})
+		leavesLeft = leavesLeft[:limit]
+		for _, amount := range leavesLeft {
+			total += amount
+		}
+		return total
+	} else {
+		for _, trxn := range transactionCache.Transactions {
+			total += int64(trxn.Capacity) - int64(len(trxn.Leaves))
+		}
+		return total + ((int64 (limit) - size) * _lambda)
+	}
+}
+
+func (s *logSequencingTask) fetchTransaction(ctx context.Context, tree *trillian.Tree, limit int, cutoff time.Time, transactionCache *TransactionMemory) ([]*trillian.LogLeaf, int, error) {
 	keepFetching := false
 
 	// Add a check to see if any transactions are already done.
-	leaves, queueIDs, limit, err := extractCompletedTransactions (transactionCache, limit)
+	leaves, queueIDs, trxnIDs, limit, err := extractCompletedTransactions (ctx, tree, transactionCache, limit, s)
 
 	// Check how many additional transactions need to be fetched.
 	if (limit != 0) {
@@ -382,27 +472,50 @@ func (s *logSequencingTask) fetchTransaction(ctx context.Context, limit int, cut
 
 		start := s.timeSource.Now()
 		// Recent leaves inside the guard window will not be available for sequencing.
-		leafNodes, leafIDs, err := s.tx.GetQueuedLeavesRange(ctx, transactionCache.Offset, leavesRemaining, cutoff)
+		leafNodes, leafIDs, err := s.tx.GetQueuedLeavesRange(ctx, int(transactionCache.Offset), int(leavesRemaining), cutoff)
 		if err != nil {
 			glog.Warningf("%v: Sequencer failed to dequeue leaves: %v", s.label, err)
-			return nil, nil, err
+			return nil, 0, err
 		}
 		seqDequeueLatency.Observe(util.SecondsSince(s.timeSource, start), s.label)
 
+		dequeueIDs, ok := leafIDs.([][]byte)
+		if !ok {
+			return nil, 0, errors.New ("Unable to fetch the dequeueIDs")
+		}
+
 		// Place the updated leaves in the correct location
-		err = updateTransactionMemory (transactionCache, leafNodes, leafIds)
+		err = updateTransactionMemory (transactionCache, leafNodes, dequeueIDs)
 
 		// Check if we are done
-		tempLeaves, tempQueueIDs, tempLimit, err := extractCompletedTransaction (transactionCache
+		tempLeaves, tempQueueIDs, tempTrxnIDs, limit, err := extractCompletedTransactions (ctx, tree, transactionCache, limit, s)
+		leaves = append (leaves, tempLeaves...)
+		queueIDs = append (queueIDs, tempQueueIDs...)
+		trxnIDs = append (trxnIDs, tempTrxnIDs...)
+		if limit == 0 || len(leafNodes) < int(leavesRemaining) {
+			keepFetching = false
+		}
 	}
+	// Remove any pending transactions and leaves
+	err = s.tx.RemoveQueuedLeaves (ctx, queueIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+	for _, trxnID := range trxnIDs {
+		err = s.tx.DeleteInProgressTransaction (ctx, tree.TreeId, trxnID)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
 	// Assign leaf sequence numbers.
 	for i, leaf := range leaves {
 		leaf.LeafIndex = s.treeSize + int64(i)
 	}
-	return leaves, queueIDs, nil
+	return leaves, len (trxnIDs), nil
 }
 
-// End of Nick's function
+// End of Nick's functions
 
 func (s *logSequencingTask) update(ctx context.Context, leaves []*trillian.LogLeaf) error {
 	start := s.timeSource.Now()
@@ -432,8 +545,8 @@ func (s *preorderedLogSequencingTask) fetch(ctx context.Context, limit int, cuto
 }
 
 
-func (s *preorderedLogSequencingTask) fetchTransaction(ctx context.Context, limit int, cutoff time.Time, transactionCache *TransactionMemory) ([]*trillian.LogLeaf, [][]byte, error) {
-	return nil, nil, errors.New("Preordered Logs are not supported for transactions.")
+func (s *preorderedLogSequencingTask) fetchTransaction(ctx context.Context, tree *trillian.Tree, limit int, cutoff time.Time, transactionCache *TransactionMemory) ([]*trillian.LogLeaf, int, error) {
+	return nil, 0, errors.New("Preordered Logs are not supported for transactions.")
 }
 
 func (s *preorderedLogSequencingTask) update(ctx context.Context, leaves []*trillian.LogLeaf) error {
@@ -498,19 +611,29 @@ func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian
 		nodeMap := make(map[string]storage.Node)
 		counter := 10
 		for  ; keepFetching ; {
-			sequencedLeaves, err := st.fetch(ctx, limit, start.Add(-guardWindow))
-			if err != nil {
-				glog.Warningf("%v: Sequencer failed to load sequenced batch: %v", tree.TreeId, err)
-				return err
+			var sequencedLeaves []*trillian.LogLeaf
+			var total int
+			if useTrxns {
+				sequencedLeaves, total, err = st.fetchTransaction (ctx, tree, limit, start.Add(-guardWindow), TransactionCache)
+				if err != nil {
+					glog.Warningf("%v: Sequencer failed to load sequenced batch: %v", tree.TreeId, err)
+					return err
+				}
+			} else {
+				sequencedLeaves, err = st.fetch(ctx, limit, start.Add(-guardWindow))
+				if err != nil {
+					glog.Warningf("%v: Sequencer failed to load sequenced batch: %v", tree.TreeId, err)
+					return err
+				}
+				total = len(sequencedLeaves)
 			}
 			tempLeaves := len(sequencedLeaves)
-			numLeaves += tempLeaves
 			if ignoreBatchSize && counter > 0 {
 				counter -= 1
 			} else {
-				limit -= tempLeaves
+				limit -= total
 			}
-
+			numLeaves += tempLeaves
 			keepFetching = limit > 0
 			// Break out of the fetching loop when we run out of leaves
 			if tempLeaves == 0 {
@@ -600,7 +723,6 @@ func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian
 		}
 		seqSetNodesLatency.Observe(util.SecondsSince(s.timeSource, stageStart), label)
 		stageStart = s.timeSource.Now()
-
 
 		// Create the log root ready for signing
 		seqTreeSize.Set(float64(merkleTree.Size()), label)
