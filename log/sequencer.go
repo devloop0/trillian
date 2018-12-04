@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
-
+	"errors"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/google/trillian"
@@ -328,6 +328,10 @@ type sequencingTask interface {
 	// values starting from the current tree size.
 	fetch(ctx context.Context, limit int, cutoff time.Time) ([]*trillian.LogLeaf, error)
 
+	// Function used for fetching sequenced entries for those using trnasactions
+	fetchTransaction(ctx context.Context, limit int, cutoff time.Time, transactionCache *TransactionMemory) ([]*trillian.LogLeaf, [][]byte, error)
+
+
 	// update makes sequencing persisted in storage, if not yet.
 	update(ctx context.Context, leaves []*trillian.LogLeaf) error
 }
@@ -361,6 +365,45 @@ func (s *logSequencingTask) fetch(ctx context.Context, limit int, cutoff time.Ti
 	return leaves, nil
 }
 
+// Nick's Function
+func (s *logSequencingTask) fetchTransaction(ctx context.Context, limit int, cutoff time.Time, transactionCache *TransactionMemory) ([]*trillian.LogLeaf, [][]byte, error) {
+	keepFetching := false
+
+	// Add a check to see if any transactions are already done.
+	leaves, queueIDs, limit, err := extractCompletedTransactions (transactionCache, limit)
+
+	// Check how many additional transactions need to be fetched.
+	if (limit != 0) {
+		keepFetching = true
+	}
+
+	for ; keepFetching; {
+		leavesRemaining := determineLeavesToFetch (transactionCache, limit)
+
+		start := s.timeSource.Now()
+		// Recent leaves inside the guard window will not be available for sequencing.
+		leafNodes, leafIDs, err := s.tx.GetQueuedLeavesRange(ctx, transactionCache.Offset, leavesRemaining, cutoff)
+		if err != nil {
+			glog.Warningf("%v: Sequencer failed to dequeue leaves: %v", s.label, err)
+			return nil, nil, err
+		}
+		seqDequeueLatency.Observe(util.SecondsSince(s.timeSource, start), s.label)
+
+		// Place the updated leaves in the correct location
+		err = updateTransactionMemory (transactionCache, leafNodes, leafIds)
+
+		// Check if we are done
+		tempLeaves, tempQueueIDs, tempLimit, err := extractCompletedTransaction (transactionCache
+	}
+	// Assign leaf sequence numbers.
+	for i, leaf := range leaves {
+		leaf.LeafIndex = s.treeSize + int64(i)
+	}
+	return leaves, queueIDs, nil
+}
+
+// End of Nick's function
+
 func (s *logSequencingTask) update(ctx context.Context, leaves []*trillian.LogLeaf) error {
 	start := s.timeSource.Now()
 	// Write the new sequence numbers to the leaves in the DB.
@@ -386,6 +429,11 @@ func (s *preorderedLogSequencingTask) fetch(ctx context.Context, limit int, cuto
 	}
 	seqDequeueLatency.Observe(util.SecondsSince(s.timeSource, start), s.label)
 	return leaves, nil
+}
+
+
+func (s *preorderedLogSequencingTask) fetchTransaction(ctx context.Context, limit int, cutoff time.Time, transactionCache *TransactionMemory) ([]*trillian.LogLeaf, [][]byte, error) {
+	return nil, nil, errors.New("Preordered Logs are not supported for transactions.")
 }
 
 func (s *preorderedLogSequencingTask) update(ctx context.Context, leaves []*trillian.LogLeaf) error {
