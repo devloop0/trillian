@@ -31,9 +31,9 @@ generate_data:
 	../scripts/transactiongen.py `cat data/logid` > data/transaction_data
 
 rebuild:
-	cd .. && go build ./server/trillian_log_server && go build ./server/trillian_log_signer
+	cd .. && go build -tags='batched_queue' ./server/trillian_log_server && go build -tags='batched_queue' ./server/trillian_log_signer
 	yes | ../scripts/resetdb.sh
-	go build
+	go build -tags='batched_queue'
 
 initialize_data: initialize_log_id generate_data
 

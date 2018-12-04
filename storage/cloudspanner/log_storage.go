@@ -209,7 +209,6 @@ func (ls *logStorage) GetInProgressTransaction(ctx context.Context, tree *trilli
 	return nil, errors.New("Unimplemented")
 }
 
-
 func (ls *logStorage) SnapshotForTree(ctx context.Context, tree *trillian.Tree) (storage.ReadOnlyLogTreeTX, error) {
 	return ls.begin(ctx, tree, true /* readonly */, ls.ts.client.ReadOnlyTransaction())
 }
@@ -377,6 +376,14 @@ func (t *logTX) DeleteInProgressTransaction (ctx context.Context, logId int64, t
 
 func (t* logTX) GetInProgressTransaction(ctx context.Context, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
 	return nil, errors.New("Unimplemented")
+}
+
+func (t* logTX) GetQueuedLeavesRange(ctx context.Context, start int, limit int, cutoff time.Time) ([]*trillian.LogLeaf, interface{}, error) {
+	return nil, nil, errors.New("Unimplemented")
+}
+
+func (t* logTX) RemoveQueuedLeaves(ctx context.Context, queueIDs interface{}) error {
+	return errors.New("Unimplemented")
 }
 /* End of Nick's stuff. */
 

@@ -38,6 +38,14 @@ const (
 			AND Bucket=0
 			AND QueueTimestampNanos<=?
 			ORDER BY QueueTimestampNanos,LeafIdentityHash ASC LIMIT ?`
+	selectQueuedLeavesOffsetSQL = `SELECT LeafIdentityHash,MerkleLeafHash,QueueTimestampNanos,QueueID
+		FROM Unsequenced
+		WHERE TreeID=?
+		AND Bucket=0
+		AND QueueTimestampNanos<=?
+		ORDER BY QueueTimestampNanos,LeafIdentityHash ASC
+		OFFSET ? ROWS
+		FETCH NEXT ? ROWS ONLY`
 	insertUnsequencedEntrySQL = `INSERT INTO Unsequenced(TreeId,Bucket,LeafIdentityHash,MerkleLeafHash,QueueTimestampNanos,QueueID) VALUES(?,0,?,?,?,?)`
 	deleteUnsequencedSQL      = "DELETE FROM Unsequenced WHERE QueueID IN (<placeholder>)"
 )

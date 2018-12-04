@@ -115,31 +115,31 @@ type adminTX struct {
 }
 
 func (t *adminTX) Commit() error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
+	//t.mu.Lock()
+	//defer t.mu.Unlock()
 	t.closed = true
 	return t.tx.Commit()
 }
 
 func (t *adminTX) Rollback() error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
+	//t.mu.Lock()
+	//defer t.mu.Unlock()
 	t.closed = true
 	return t.tx.Rollback()
 }
 
 func (t *adminTX) IsClosed() bool {
-	t.mu.RLock()
-	defer t.mu.RUnlock()
+	//t.mu.RLock()
+	//defer t.mu.RUnlock()
 	return t.closed
 }
 
 func (t *adminTX) Close() error {
 	// Acquire and release read lock manually, without defer, as if the txn
 	// is not closed Rollback() will attempt to acquire the rw lock.
-	t.mu.RLock()
+	//t.mu.RLock()
 	closed := t.closed
-	t.mu.RUnlock()
+	//t.mu.RUnlock()
 	if !closed {
 		err := t.Rollback()
 		if err != nil {
