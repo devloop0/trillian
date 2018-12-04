@@ -118,7 +118,7 @@ func (s *SequencerManager) ExecuteTransactionPass(ctx context.Context, logID int
 		glog.Warning("failed to parse tree.MaxRootDuration, using zero")
 		maxRootDuration = 0
 	}
-	leaves, err := sequencer.IntegrateTransactionBatch(ctx, tree, info.BatchSize, s.guardWindow, maxRootDuration, info.IgnoreBatchSize)
+	leaves, err := sequencer.IntegrateTransactionBatch(ctx, tree, info.BatchSize, s.guardWindow, maxRootDuration, info.IgnoreBatchSize, info.TrxnWrites, &info.TransactionsCache)
 	if err != nil {
 		return 0, fmt.Errorf("failed to integrate batch for %v: %v", logID, err)
 	}

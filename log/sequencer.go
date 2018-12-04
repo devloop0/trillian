@@ -65,6 +65,39 @@ var (
 	QuotaIncreaseFactor = 1.1
 )
 
+// Nick's Structs
+
+// Structure for holding the in memory data necessary for updating a transaction
+type TransactionDetails struct {
+
+        // Array which holds all of the actual leaves for a transaction that have
+        // been fetched so far.
+        Leaves []*trillian.LogLeaf
+
+        // Array which holds the information necessary to dequeue all of the leaves
+        // that have been fetched so far.
+        DequeueInfo [][]byte
+
+        // Holds the size of the Transaction. If the capacity is 0 then its size.
+        // is not currently known.
+        Capacity uint
+}
+
+
+// Structure for storing in progress transaction data in memory.
+type TransactionMemory struct {
+
+        // Array which holds the details for any pending transactions
+        Transactions []TransactionDetails
+
+        // Integer which stores how many of the most recent leaves are held
+        // in memory but not deleted from the queue on disk
+        Offset uint
+}
+
+// End of Nick's Structs
+
+
 func quotaIncreaseFactor() float64 {
 	if QuotaIncreaseFactor < 1 {
 		QuotaIncreaseFactor = 1
@@ -361,7 +394,7 @@ func (s *preorderedLogSequencingTask) update(ctx context.Context, leaves []*tril
 }
 
 // Nick's Function(s)
-func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian.Tree, limit int, guardWindow, maxRootDurationInterval time.Duration, ignoreBatchSize bool) (int, error) {
+func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian.Tree, limit int, guardWindow, maxRootDurationInterval time.Duration, ignoreBatchSize, useTrxns bool, TransactionCache *TransactionMemory) (int, error) {
 	start := s.timeSource.Now()
 	label := strconv.FormatInt(tree.TreeId, 10)
 

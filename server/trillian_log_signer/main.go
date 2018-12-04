@@ -168,6 +168,7 @@ func main() {
 		TrxnWrites : *transactionWritesFlag,
 		ExtraChecks : *extraChecksFlag,
 		IgnoreBatchSize: *ignoreBatchSizeFlag,
+		TransactionsCache: log.TransactionMemory{},
 		//End of Nick's additions 
 	}
 	sequencerTask := server.NewLogOperationManager(info, sequencerManager)
