@@ -481,6 +481,9 @@ func (s *logSequencingTask) fetchTransaction(ctx context.Context, tree *trillian
 		dequeueIDs := leafIDs
 		// Place the updated leaves in the correct location
 		err = updateTransactionMemory (transactionCache, leafNodes, dequeueIDs)
+		if err != nil {
+			return nil, 0, err
+		}
 
 		// Check if we are done
 		tempLeaves, tempQueueIDs, tempTrxnIDs, limit, err := extractCompletedTransactions (ctx, tree, transactionCache, limit, s)
