@@ -35,7 +35,7 @@ import (
 	"github.com/google/trillian/storage/cache"
 	"github.com/google/trillian/types"
 	"github.com/google/trillian/userTypes"
-	//"github.com/google/trillian/networkSimulator"
+	"github.com/google/trillian/networkSimulator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -329,6 +329,7 @@ func (m *mySQLLogStorage) GetKeys(ctx context.Context, tree *trillian.Tree, requ
 	if err != nil {
 		return nil, err
 	}
+	NetworkSimulator.GenerateReadSQLDelay()
 	return keys, tx.Commit()
 }
 
@@ -342,6 +343,7 @@ func (m *mySQLLogStorage) WriteCurrentEpoch(ctx context.Context, timestamp int64
 		_ = tx.Rollback()
 		return err
 	}
+	NetworkSimulator.GenerateWriteSQLDelay()
 	if err := tx.Commit(); err != nil {
 		return err
 	}
@@ -382,6 +384,7 @@ func (m *mySQLLogStorage) GetInProgressTransaction(ctx context.Context, tree *tr
 	if err != nil {
 		return nil, err
 	}
+	NetworkSimulator.GenerateReadSQLDelay()
 	return transaction, tx.Commit()
 }
 
@@ -396,6 +399,7 @@ func (m *mySQLLogStorage) AddSequencedLeaves(ctx context.Context, tree *trillian
 	if err != nil {
 		return nil, err
 	}
+	NetworkSimulator.GenerateWriteSQLDelay()
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -420,6 +424,7 @@ func (m *mySQLLogStorage) QueueLeaves(ctx context.Context, tree *trillian.Tree, 
 		return nil, err
 	}
 
+	NetworkSimulator.GenerateWriteSQLDelay()
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -444,6 +449,7 @@ func (m *mySQLLogStorage) QueueLeafs(ctx context.Context, tree *trillian.Tree, l
 		return nil, err
 	}
 
+	NetworkSimulator.GenerateWriteSQLDelay()
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -472,9 +478,9 @@ type logTreeTX struct {
 
 /* NICK MAP STUFF. */
 func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) ([]string, []string, error) {
+	NetworkSimulator.GenerateNetworkDelay()
 	rows, err := t.tx.QueryContext (ctx, searchUserMap, key.LogId, key.UserId, key.PublicKey)
-	// NetworkSimulator.DropPacket()
-	// NetworkSimulator.GenerateDelay()
+	NetworkSimulator.GenerateNetworkDelay()
 	defer rows.Close()
 	if err != nil {
 		return nil, nil, err
@@ -495,21 +501,23 @@ func (t *logTreeTX) SearchUserMap (ctx context.Context, key *UserTypes.MapKey) (
 }
 
 func (t *logTreeTX) DeleteFromUserMap (ctx context.Context, key *UserTypes.MapKey) error {
+	NetworkSimulator.GenerateNetworkDelay()
 	_, err := t.tx.ExecContext (ctx, deleteUserMap, key.LogId, key.UserId, key.PublicKey)
-	// NetworkSimulator.DropPacket()
-	// NetworkSimulator.GenerateDelay()
+	NetworkSimulator.GenerateNetworkDelay()
 	return err
 }
 
 func (t *logTreeTX) AddToUserMap (ctx context.Context, contents *UserTypes.MapContents) error {
+	NetworkSimulator.GenerateNetworkDelay()
 	_, err := t.tx.ExecContext (ctx, insertUserMap, contents.LogId, contents.UserId, contents.PublicKey, contents.DeviceId, contents.Identity)
-	// NetworkSimulator.DropPacket()
-	// NetworkSimulator.GenerateDelay()
+	NetworkSimulator.GenerateNetworkDelay()
 	return err
 }
 
 func (t *logTreeTX) GetKeys (ctx context.Context, request *trillian.UserReadLeafRequest) ([]string, error) {
+	NetworkSimulator.GenerateNetworkDelay()
 	rows, err := t.tx.QueryContext (ctx, getUserKeys, request.LogId, request.UserId, request.DeviceId)
+	NetworkSimulator.GenerateNetworkDelay()
 	if err != nil {
 		return nil, err
 	}
@@ -527,17 +535,23 @@ func (t *logTreeTX) GetKeys (ctx context.Context, request *trillian.UserReadLeaf
 }
 
 func (t *logTreeTX) AddInProgressTransaction (ctx context.Context, request *UserTypes.InProgressTransactionData) error {
+	NetworkSimulator.GenerateNetworkDelay()
 	_, err := t.tx.ExecContext(ctx, insertInProgress, request.LogId, request.TransactionId, request.NodeCount)
+	NetworkSimulator.GenerateNetworkDelay()
 	return err
 }
 
 func (t *logTreeTX) DeleteInProgressTransaction (ctx context.Context, logId int64, transactionId int64) error {
+	NetworkSimulator.GenerateNetworkDelay()
 	_, err := t.tx.ExecContext(ctx, deleteInProgress, logId, transactionId)
+	NetworkSimulator.GenerateNetworkDelay()
 	return err
 }
 
 func (t* logTreeTX) GetInProgressTransaction(ctx context.Context, logId int64, transactionId int64) (*UserTypes.InProgressTransactionData, error) {
+	NetworkSimulator.GenerateNetworkDelay()
 	rows, err := t.tx.QueryContext(ctx, getInProgress, logId, transactionId)
+	NetworkSimulator.GenerateNetworkDelay()
 	if err != nil {
 		return nil, err
 	}
@@ -579,7 +593,9 @@ func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, startOffset int, l
 
 	leaves := make([]*trillian.LogLeaf, 0, limit)
 	dq := make([]dequeuedLeaf, 0, limit)
+	NetworkSimulator.GenerateNetworkDelay()
 	rows, err := stx.QueryContext(ctx, t.treeID, cutoff.UnixNano(), limit, startOffset)
+	NetworkSimulator.GenerateNetworkDelay()
 	if err != nil {
 		glog.Warningf("Failed to select rows for work: %s", err)
 		return nil, nil, err
@@ -638,7 +654,9 @@ func (t *logTreeTX) RemoveQueuedLeaves(ctx context.Context, queueIDs_ interface{
 
 	var err error = nil
 	if len(queueIDs) > 0 {
+		NetworkSimulator.GenerateNetworkDelay()
 		err = t.removeSequencedLeaves(ctx, queueIDs)
+		NetworkSimulator.GenerateNetworkDelay()
 	}
 
 	if err != nil {
@@ -765,9 +783,9 @@ func (t *logTreeTX) QueueLeaves(ctx context.Context, leaves []*trillian.LogLeaf,
 		if err != nil {
 			return nil, fmt.Errorf("got invalid queue timestamp: %v", err)
 		}
+		NetworkSimulator.GenerateNetworkDelay()
 		_, err = t.tx.ExecContext(ctx, insertLeafDataSQL, t.treeID, leaf.LeafIdentityHash, leaf.LeafValue, leaf.ExtraData, qTimestamp.UnixNano())
-		// NetworkSimulator.DropPacket()
-		// NetworkSimulator.GenerateDelay()
+		NetworkSimulator.GenerateNetworkDelay()
 		insertDuration := time.Since(leafStart)
 		observe(queueInsertLeafLatency, insertDuration, label)
 		if isDuplicateErr(err) {
@@ -904,11 +922,11 @@ func (t *logTreeTX) AddSequencedLeaves(ctx context.Context, leaves []*trillian.L
 			return nil, err
 		}
 
+		NetworkSimulator.GenerateNetworkDelay()
 		_, err = t.tx.ExecContext(ctx, insertSequencedLeafSQL+valuesPlaceholder5,
 			t.treeID, leaf.LeafIdentityHash, leaf.MerkleLeafHash, leaf.LeafIndex, 0)
 		// TODO(pavelkalinnikov): Update IntegrateTimestamp on integrating the leaf.
-		// NetworkSimulator.DropPacket()
-		// NetworkSimulator.GenerateDelay()
+		NetworkSimulator.GenerateNetworkDelay()
 
 		if isDuplicateErr(err) {
 			res[i].Status = status.New(codes.FailedPrecondition, "conflicting LeafIndex").Proto()
@@ -959,9 +977,9 @@ func (t *logTreeTX) GetLeavesByIndex(ctx context.Context, leaves []int64) ([]*tr
 	if err != nil {
 		return nil, err
 	}
+	NetworkSimulator.GenerateNetworkDelay()
 	stx := t.tx.StmtContext(ctx, tmpl)
-	// NetworkSimulator.DropPacket()
-	// NetworkSimulator.GenerateDelay()
+	NetworkSimulator.GenerateNetworkDelay()
 	defer stx.Close()
 
 	var args []interface{}
@@ -1032,9 +1050,9 @@ func (t *logTreeTX) GetLeavesByRange(ctx context.Context, start, count int64) ([
 	// TODO(pavelkalinnikov): Further clip `count` to a safe upper bound like 64k.
 
 	args := []interface{}{start, start + count, t.treeID}
+	NetworkSimulator.GenerateNetworkDelay()
 	rows, err := t.tx.QueryContext(ctx, selectLeavesByRangeSQL, args...)
-	// NetworkSimulator.DropPacket()
-	// NetworkSimulator.GenerateDelay()
+	NetworkSimulator.GenerateNetworkDelay()
 	if err != nil {
 		glog.Warningf("Failed to get leaves by range: %s", err)
 		return nil, err
@@ -1191,12 +1209,12 @@ func (t *logTreeTX) getLeavesByHashInternal(ctx context.Context, leafHashes [][]
 		var integrateTS sql.NullInt64
 		var queueTS int64
 
+		NetworkSimulator.GenerateNetworkDelay()
 		if err := rows.Scan(&leaf.MerkleLeafHash, &leaf.LeafIdentityHash, &leaf.LeafValue, &leaf.LeafIndex, &leaf.ExtraData, &queueTS, &integrateTS); err != nil {
 			glog.Warningf("LogID: %d Scan() %s = %s", t.treeID, desc, err)
 			return nil, err
 		}
-		// NetworkSimulator.DropPacket()
-		// NetworkSimulator.GenerateDelay()
+		NetworkSimulator.GenerateNetworkDelay()
 		var err error
 		leaf.QueueTimestamp, err = ptypes.TimestampProto(time.Unix(0, queueTS))
 		if err != nil {
