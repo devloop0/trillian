@@ -314,7 +314,7 @@ func (t *logTreeTX) GetInProgressTransaction(ctx context.Context, logId int64, t
 	return nil, errors.New("Unimplemented")
 }
 
-func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, start int, limit int, cutoff time.Time) ([]*trillian.LogLeaf, interface{}, error) {
+func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, start int, limit int, cutoff time.Time) ([]*trillian.LogLeaf, []interface{}, error) {
 	return nil, nil, errors.New("Unimplemented")
 }
 

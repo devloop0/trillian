@@ -561,7 +561,7 @@ func (t* logTreeTX) GetInProgressTransaction(ctx context.Context, logId int64, t
 	return &transaction, nil
 }
 
-func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, startOffset int, limit int, cutoff time.Time) ([]*trillian.LogLeaf, interface{}, error) {
+func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, startOffset int, limit int, cutoff time.Time) ([]*trillian.LogLeaf, []interface{}, error) {
 	if t.treeType == trillian.TreeType_PREORDERED_LOG {
 		// TODO(pavelkalinnikov): Optimize this by fetching only the required
 		// fields of LogLeaf. We can avoid joining with LeafData table here.
@@ -614,13 +614,26 @@ func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, startOffset int, l
 	observe(dequeueLatency, totalDuration, label)
 	dequeuedCounter.Add(float64(len(leaves)), label)
 
-	return leaves, dq, nil
+	var retDq []interface{} = make([]interface{}, len(dq))
+	for i, d := range dq {
+		retDq[i] = d
+	}
+
+	return leaves, retDq, nil
 }
 
 func (t *logTreeTX) RemoveQueuedLeaves(ctx context.Context, queueIDs_ interface{}) error {
-	queueIDs, ok := queueIDs_.([]dequeuedLeaf)
+	queueIDsTemp, ok := queueIDs_.([]interface{})
 	if !ok {
-		return errors.New("Invalid argument for queueIDs")
+		return errors.New(fmt.Sprintf("Invalid argument for queueIDs %T", queueIDs_))
+	}
+	var queueIDs []dequeuedLeaf = make([]dequeuedLeaf, len(queueIDsTemp))
+	for i, d := range queueIDsTemp {
+		queueID, ok := d.(dequeuedLeaf)
+		if !ok {
+			return errors.New(fmt.Sprintf("Invalid queueID %T", queueID))
+		}
+		queueIDs[i] = queueID
 	}
 
 	var err error = nil

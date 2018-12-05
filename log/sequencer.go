@@ -79,7 +79,7 @@ type TransactionDetails struct {
 
         // Array which holds the information necessary to dequeue all of the leaves
         // that have been fetched so far.
-        DequeueInfo [][]byte
+        DequeueInfo []interface{}
 
 	// Holds the ID for the current transaction. Same data should be in the
 	// leaves as well.
@@ -374,9 +374,9 @@ func (s *logSequencingTask) fetch(ctx context.Context, limit int, cutoff time.Ti
 
 // Nick's Functions
 
-func extractCompletedTransactions(ctx context.Context, tree *trillian.Tree, transactionCache *TransactionMemory, limit int, s *logSequencingTask) ([]*trillian.LogLeaf, [][]byte, []int64, int, error) {
+func extractCompletedTransactions(ctx context.Context, tree *trillian.Tree, transactionCache *TransactionMemory, limit int, s *logSequencingTask) ([]*trillian.LogLeaf, []interface{}, []int64, int, error) {
 	var leaves []*trillian.LogLeaf
-	var queueIDs [][]byte
+	var queueIDs []interface{}
 	var trxnIDs []int64
 	for i := 0; i < len (transactionCache.Transactions) && limit > 0; {
 		transaction := transactionCache.Transactions[i]
@@ -403,7 +403,7 @@ func extractCompletedTransactions(ctx context.Context, tree *trillian.Tree, tran
 	return leaves, queueIDs, trxnIDs, limit, nil
 }
 
-func updateTransactionMemory (transactionCache *TransactionMemory, leaves []*trillian.LogLeaf, queueIDs [][]byte) error {
+func updateTransactionMemory (transactionCache *TransactionMemory, leaves []*trillian.LogLeaf, queueIDs []interface{}) error {
 	for j, leaf := range leaves {
 		unplaced := true
 		var leafData UserTypes.LeafData
@@ -478,12 +478,7 @@ func (s *logSequencingTask) fetchTransaction(ctx context.Context, tree *trillian
 			return nil, 0, err
 		}
 		seqDequeueLatency.Observe(util.SecondsSince(s.timeSource, start), s.label)
-		dequeueIDsPtr, ok := leafIDs.(*[][]byte)
-		if !ok {
-			str := fmt.Sprintf("%T\n", leafIDs)
-			return nil, 0, errors.New (str)
-		}
-		dequeueIDs := *dequeueIDsPtr
+		dequeueIDs := leafIDs
 		// Place the updated leaves in the correct location
 		err = updateTransactionMemory (transactionCache, leafNodes, dequeueIDs)
 

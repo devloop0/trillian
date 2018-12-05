@@ -502,10 +502,10 @@ func (m *MockLogTreeTX) AddToUserMap(arg0 context.Context, arg1 *userTypes.MapCo
 	return ret0
 }
 
-func (m *MockLogTreeTX) GetQueuedLeavesRange(arg0 context.Context, arg1 int, arg2 int, arg3 time.Time) ([]*trillian.LogLeaf, interface{}, error) {
+func (m *MockLogTreeTX) GetQueuedLeavesRange(arg0 context.Context, arg1 int, arg2 int, arg3 time.Time) ([]*trillian.LogLeaf, []interface{}, error) {
 	ret := m.ctrl.Call(m, "GetQueuedLeavesRange", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*trillian.LogLeaf)
-	ret1, _ := ret[1].([][]byte)
+	ret1, _ := ret[1].([]interface{})
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
