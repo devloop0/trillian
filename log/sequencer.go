@@ -378,6 +378,7 @@ func extractCompletedTransactions(ctx context.Context, tree *trillian.Tree, tran
 	var trxnIDs []int64
 	for i := 0; i < len (transactionCache.Transactions) && limit > 0; {
 		transaction := transactionCache.Transactions[i]
+		glog.Warningf("extractCompletedTransactions: Transaction %v", transaction)
 		if transaction.Capacity == 0 {
 			data, err := s.tx.GetInProgressTransaction (ctx, tree.TreeId, transaction.TrxnID)
 			if err != nil {
@@ -392,7 +393,11 @@ func extractCompletedTransactions(ctx context.Context, tree *trillian.Tree, tran
 			transactionCache.Offset -= transaction.Capacity
 			limit -= 1
 			endPoint := len (transactionCache.Transactions) - 1
-			transactionCache.Transactions[i], transactionCache.Transactions[endPoint] = transactionCache.Transactions[endPoint], transactionCache.Transactions[i]
+			if endPoint == i {
+				i++
+			} else {
+				transactionCache.Transactions[i], transactionCache.Transactions[endPoint] = transactionCache.Transactions[endPoint], transactionCache.Transactions[i]
+			}
 			transactionCache.Transactions = transactionCache.Transactions[:endPoint]
 		} else {
 			i++
@@ -489,6 +494,7 @@ func (s *logSequencingTask) fetchTransaction(ctx context.Context, tree *trillian
 		queueIDs = append (queueIDs, tempQueueIDs...)
 		trxnIDs = append (trxnIDs, tempTrxnIDs...)
 		if limit == 0 || len(leafNodes) < int(leavesRemaining) {
+			glog.Warningf("fetchTransaction (limit: %d) (len(leafNodes): %d), (int(leaveRemaining): %d)", limit, len(leafNodes), int(leavesRemaining))
 			keepFetching = false
 		}
 	}
@@ -496,6 +502,7 @@ func (s *logSequencingTask) fetchTransaction(ctx context.Context, tree *trillian
 	err = s.tx.RemoveQueuedLeaves (ctx, queueIDs)
 	if err != nil {
 		glog.Warningf("Failed to remove any pending transactions and leaves.")
+		glog.Warningf("%v", err)
 		return nil, 0, err
 	}
 	for _, trxnID := range trxnIDs {
