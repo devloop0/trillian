@@ -25,7 +25,6 @@ type UserData struct {
 type LeafData struct {
 	PublicKey string
 	DeviceId string
-	TransactionId int64
 }
 
 type InProgressTransactionData struct {
@@ -47,6 +46,6 @@ func CreateMapContents (LogId int64, UserId string, PublicKey string, DeviceId s
 	return &MapContents{LogId: LogId, UserId: UserId, PublicKey: PublicKey, DeviceId: DeviceId, Identity: Identity}
 }
 
-func CreateLeafData (pk string, deviceId string, transactionId int64) LeafData  {
-	return LeafData{PublicKey: pk, DeviceId: deviceId, TransactionId: transactionId}
+func CreateLeafData (pk string, deviceId string) LeafData  {
+	return LeafData{PublicKey: pk, DeviceId: deviceId}
 }

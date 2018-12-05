@@ -41,6 +41,6 @@ debug_log_server:
 	../trillian_log_server -rpc_endpoint "localhost:8090" -http_endpoint "localhost:8091" -logtostderr
 
 debug_log_signer:
-	../trillian_log_signer --force_master -rpc_endpoint "localhost:8092" -http_endpoint "localhost:8093" -batch_size=1 -sequencer_interval=1ms -logtostderr
+	../trillian_log_signer --force_master -rpc_endpoint "localhost:8092" -http_endpoint "localhost:8093" -batch_size=3 -sequencer_interval=50ms -extra_checks=true -use_trxns=true -logtostderr
 
 .PHONY: all initialize delete setup initialize_log_server initialize_log_singer initialize_log_id delete_log_id clean generate_data rebuild initialize_data debug_log_server debug_log_signer

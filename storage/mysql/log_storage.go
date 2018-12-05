@@ -587,7 +587,7 @@ func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, startOffset int, l
 	defer rows.Close()
 
 	for rows.Next() {
-		leaf, dqInfo, err := t.dequeueLeaf(rows)
+		leaf, dqInfo, err := t.dequeueTransactionLeaf(rows)
 		if err != nil {
 			glog.Warningf("Error dequeuing leaf: %v", err)
 			return nil, nil, err
@@ -793,6 +793,7 @@ func (t *logTreeTX) QueueLeaves(ctx context.Context, leaves []*trillian.LogLeaf,
 			return nil, fmt.Errorf("got invalid queue timestamp: %v", err)
 		}
 		args = append(args, queueArgs(t.treeID, leaf.LeafIdentityHash, queueTimestamp)...)
+		args = append(args, interface{}(leaf.TransactionId))
 		_, err = t.tx.ExecContext(
 			ctx,
 			insertUnsequencedEntrySQL,

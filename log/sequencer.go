@@ -24,7 +24,6 @@ import (
 	"time"
 	"sort"
 	"errors"
-	"encoding/json"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/google/trillian"
@@ -35,7 +34,6 @@ import (
 	"github.com/google/trillian/storage"
 	"github.com/google/trillian/types"
 	"github.com/google/trillian/util"
-	"github.com/google/trillian/userTypes"
 
 	tcrypto "github.com/google/trillian/crypto"
 )
@@ -403,15 +401,10 @@ func extractCompletedTransactions(ctx context.Context, tree *trillian.Tree, tran
 	return leaves, queueIDs, trxnIDs, limit, nil
 }
 
-func updateTransactionMemory (transactionCache *TransactionMemory, leaves []*trillian.LogLeaf, queueIDs []interface{}) error {
+func updateTransactionMemory (transactionCache *TransactionMemory, leaves []*trillian.LogLeaf, queueIDs []interface{}) {
 	for j, leaf := range leaves {
 		unplaced := true
-		var leafData UserTypes.LeafData
-		err := json.Unmarshal (leaf.LeafValue, &leafData)
-		if err != nil {
-			return err
-		}
-		id := leafData.TransactionId
+		id := leaf.TransactionId
 		for i := 0; i < len (transactionCache.Transactions) && unplaced; i++ {
 			if (id == transactionCache.Transactions[i].TrxnID) {
 				trxn := transactionCache.Transactions[i]
@@ -430,7 +423,6 @@ func updateTransactionMemory (transactionCache *TransactionMemory, leaves []*tri
 		}
 	}
 	transactionCache.Offset += uint(len(leaves))
-	return nil
 }
 
 func determineLeavesToFetch (transactionCache *TransactionMemory, limit int) int64 {
@@ -461,6 +453,10 @@ func (s *logSequencingTask) fetchTransaction(ctx context.Context, tree *trillian
 
 	// Add a check to see if any transactions are already done.
 	leaves, queueIDs, trxnIDs, limit, err := extractCompletedTransactions (ctx, tree, transactionCache, limit, s)
+	if err != nil {
+		glog.Warningf("Failed to check if any transactions are already done.")
+		return nil, 0, err
+	}
 
 	// Check how many additional transactions need to be fetched.
 	if (limit != 0) {
@@ -480,13 +476,15 @@ func (s *logSequencingTask) fetchTransaction(ctx context.Context, tree *trillian
 		seqDequeueLatency.Observe(util.SecondsSince(s.timeSource, start), s.label)
 		dequeueIDs := leafIDs
 		// Place the updated leaves in the correct location
-		err = updateTransactionMemory (transactionCache, leafNodes, dequeueIDs)
-		if err != nil {
-			return nil, 0, err
-		}
+		updateTransactionMemory (transactionCache, leafNodes, dequeueIDs)
 
 		// Check if we are done
 		tempLeaves, tempQueueIDs, tempTrxnIDs, limit, err := extractCompletedTransactions (ctx, tree, transactionCache, limit, s)
+		if err != nil {
+			glog.Warningf("Failed to check if we are already done after completing some transactions.")
+			return nil, 0, err
+		}
+
 		leaves = append (leaves, tempLeaves...)
 		queueIDs = append (queueIDs, tempQueueIDs...)
 		trxnIDs = append (trxnIDs, tempTrxnIDs...)
@@ -497,11 +495,13 @@ func (s *logSequencingTask) fetchTransaction(ctx context.Context, tree *trillian
 	// Remove any pending transactions and leaves
 	err = s.tx.RemoveQueuedLeaves (ctx, queueIDs)
 	if err != nil {
+		glog.Warningf("Failed to remove any pending transactions and leaves.")
 		return nil, 0, err
 	}
 	for _, trxnID := range trxnIDs {
 		err = s.tx.DeleteInProgressTransaction (ctx, tree.TreeId, trxnID)
 		if err != nil {
+			glog.Warningf("Failed to remove transactions from the InProgress table.")
 			return nil, 0, err
 		}
 	}

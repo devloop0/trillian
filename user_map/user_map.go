@@ -19,12 +19,12 @@ func ExtractMapKey (LogId int64, UserId string, OldPublicKey string) *UserTypes.
 	return UserTypes.CreateMapKey(LogId, UserId, OldPublicKey)
 }
 
-func NewLeafData (data []byte) (*trillian.LogLeaf) {
-	return &trillian.LogLeaf{LeafValue: data}
+func NewLeafData (data []byte, transactionId int64) (*trillian.LogLeaf) {
+	return &trillian.LogLeaf{LeafValue: data, TransactionId: transactionId}
 }
 
-func PrepareLeafData (publicKey string, deviceId string, transactionId int64) ([]byte, error) {
-	data, err := json.Marshal (UserTypes.CreateLeafData (publicKey, deviceId, transactionId))
+func PrepareLeafData (publicKey string, deviceId string) ([]byte, error) {
+	data, err := json.Marshal (UserTypes.CreateLeafData (publicKey, deviceId))
 	if (err != nil) {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func PrepareLeafData (publicKey string, deviceId string, transactionId int64) ([
 func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Registry, key *UserTypes.MapKey, deviceId string, newPk string) ([]*trillian.LogLeaf, storage.LogTreeTX, error){
 	transactionId := UserTypes.GenerateTransactionId()
 	if (key.PublicKey == "") {
-		data, err := PrepareLeafData (newPk, deviceId, transactionId)
+		data, err := PrepareLeafData (newPk, deviceId)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -49,7 +49,7 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 		if err != nil {
 			return nil, nil, err
 		}
-		return []*trillian.LogLeaf{NewLeafData (data)}, tx, nil
+		return []*trillian.LogLeaf{NewLeafData (data, transactionId)}, tx, nil
 	} else {
 		identifiers, identities, tx, err := reg.LogStorage.SearchUserMap (ctx, tree, key)
 		if (err != nil) {
@@ -65,11 +65,11 @@ func GatherLeaves (ctx context.Context, tree *trillian.Tree, reg extension.Regis
 		leaves := make([]*trillian.LogLeaf, 0)
 		for i, _ := range identifiers {
 			identifier, identity := identifiers[i], identities[i]
-			data, err := PrepareLeafData (newPk, identifier, transactionId)
+			data, err := PrepareLeafData (newPk, identifier)
 			if err != nil {
 				return nil, nil, err
 			}
-			leaves = append (leaves, NewLeafData (data))
+			leaves = append (leaves, NewLeafData (data, transactionId))
 			contents :=  UserTypes.CreateMapContents (key.LogId, key.UserId, newPk, identifier, identity)
 			err = tx.AddToUserMap (ctx, contents)
 			if err != nil {

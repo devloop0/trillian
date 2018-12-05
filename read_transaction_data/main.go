@@ -26,7 +26,7 @@ const txWrite int64 = 2
 
 const useTrillianAPI = false
 
-const useTransactions = true
+const useTransactions = false
 
 type tx struct {
 	txType int64
