@@ -270,6 +270,19 @@ func (m *MockLogStorage) EXPECT() *MockLogStorageMockRecorder {
 	return m.recorder
 }
 
+// AddInProgressTransaction mocks base method
+func (m *MockLogStorage) AddInProgressTransaction(arg0 context.Context, arg1 *trillian.Tree, arg2 *userTypes.InProgressTransactionData) (LogTreeTX, error) {
+	ret := m.ctrl.Call(m, "AddInProgressTransaction", arg0, arg1, arg2)
+	ret0, _ := ret[0].(LogTreeTX)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddInProgressTransaction indicates an expected call of AddInProgressTransaction
+func (mr *MockLogStorageMockRecorder) AddInProgressTransaction(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddInProgressTransaction", reflect.TypeOf((*MockLogStorage)(nil).AddInProgressTransaction), arg0, arg1, arg2)
+}
+
 // AddSequencedLeaves mocks base method
 func (m *MockLogStorage) AddSequencedLeaves(arg0 context.Context, arg1 *trillian.Tree, arg2 []*trillian.LogLeaf, arg3 time.Time) ([]*trillian.QueuedLogLeaf, error) {
 	ret := m.ctrl.Call(m, "AddSequencedLeaves", arg0, arg1, arg2, arg3)
@@ -291,54 +304,9 @@ func (m *MockLogStorage) AddToUserMap(arg0 context.Context, arg1 *trillian.Tree,
 	return ret0, ret1
 }
 
-// WriteCurrentEpoch mocks base method
-func (m *MockLogStorage) WriteCurrentEpoch (arg0 context.Context, arg1 int64) error {
-	ret := m.ctrl.Call(m, "WriteCurrentEpoch", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (m *MockLogStorage) AddInProgressTransaction(arg0 context.Context, arg1 *trillian.Tree, arg2 *userTypes.InProgressTransactionData) (LogTreeTX, error) {
-	ret := m.ctrl.Call(m, "AddInProgressTransaction", arg0, arg1, arg2)
-	ret0, _ := ret[0].(LogTreeTX)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (m* MockLogStorage) DeleteInProgressTransaction(arg0 context.Context, arg1 *trillian.Tree, arg2 int64, arg3 int64) (LogTreeTX, error) {
-	ret := m.ctrl.Call(m, "DeleteInProgressTransaction", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(LogTreeTX)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (m* MockLogStorage) GetInProgressTransaction(arg0 context.Context, arg1 *trillian.Tree, arg2 int64, arg3 int64) (*userTypes.InProgressTransactionData, error) {
-	ret := m.ctrl.Call(m, "GetInProgressTransaction", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*userTypes.InProgressTransactionData)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
 // AddToUserMap indicates an expected call of AddToUserMap
 func (mr *MockLogStorageMockRecorder) AddToUserMap(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToUserMap", reflect.TypeOf((*MockLogStorage)(nil).AddToUserMap), arg0, arg1, arg2)
-}
-
-// WriteCurrentEpoch indicates an expected call of AddToUserMap
-func (mr *MockLogStorageMockRecorder) WriteCurrentEpoch (arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteCurrentEpoch", reflect.TypeOf((*MockLogStorage)(nil).WriteCurrentEpoch), arg0, arg1)
-}
-
-func (mr *MockLogStorageMockRecorder) AddInProgressTransaction(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddInProgressTransaction", reflect.TypeOf((*MockLogStorage)(nil).AddInProgressTransaction), arg0, arg1, arg2)
-}
-
-func (mr *MockLogStorageMockRecorder) DeleteInProgressTransaction(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteInProgressTransaction", reflect.TypeOf((*MockLogStorage)(nil).DeleteInProgressTransaction), arg0, arg1, arg2, arg3)
-}
-
-func (mr *MockLogStorageMockRecorder) GetInProgressTransaction(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInProgressTransaction", reflect.TypeOf((*MockLogStorage)(nil).GetInProgressTransaction), arg0, arg1, arg2, arg3)
 }
 
 // CheckDatabaseAccessible mocks base method
@@ -364,6 +332,32 @@ func (m *MockLogStorage) DeleteFromUserMap(arg0 context.Context, arg1 *trillian.
 // DeleteFromUserMap indicates an expected call of DeleteFromUserMap
 func (mr *MockLogStorageMockRecorder) DeleteFromUserMap(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromUserMap", reflect.TypeOf((*MockLogStorage)(nil).DeleteFromUserMap), arg0, arg1, arg2)
+}
+
+// DeleteInProgressTransaction mocks base method
+func (m *MockLogStorage) DeleteInProgressTransaction(arg0 context.Context, arg1 *trillian.Tree, arg2, arg3 int64) (LogTreeTX, error) {
+	ret := m.ctrl.Call(m, "DeleteInProgressTransaction", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(LogTreeTX)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteInProgressTransaction indicates an expected call of DeleteInProgressTransaction
+func (mr *MockLogStorageMockRecorder) DeleteInProgressTransaction(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteInProgressTransaction", reflect.TypeOf((*MockLogStorage)(nil).DeleteInProgressTransaction), arg0, arg1, arg2, arg3)
+}
+
+// GetInProgressTransaction mocks base method
+func (m *MockLogStorage) GetInProgressTransaction(arg0 context.Context, arg1 *trillian.Tree, arg2, arg3 int64) (*userTypes.InProgressTransactionData, error) {
+	ret := m.ctrl.Call(m, "GetInProgressTransaction", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*userTypes.InProgressTransactionData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetInProgressTransaction indicates an expected call of GetInProgressTransaction
+func (mr *MockLogStorageMockRecorder) GetInProgressTransaction(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInProgressTransaction", reflect.TypeOf((*MockLogStorage)(nil).GetInProgressTransaction), arg0, arg1, arg2, arg3)
 }
 
 // GetKeys mocks base method
@@ -458,6 +452,17 @@ func (mr *MockLogStorageMockRecorder) SnapshotForTree(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SnapshotForTree", reflect.TypeOf((*MockLogStorage)(nil).SnapshotForTree), arg0, arg1)
 }
 
+// WriteCurrentEpoch mocks base method
+func (m *MockLogStorage) WriteCurrentEpoch(arg0 context.Context, arg1 int64) error {
+	ret := m.ctrl.Call(m, "WriteCurrentEpoch", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WriteCurrentEpoch indicates an expected call of WriteCurrentEpoch
+func (mr *MockLogStorageMockRecorder) WriteCurrentEpoch(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteCurrentEpoch", reflect.TypeOf((*MockLogStorage)(nil).WriteCurrentEpoch), arg0, arg1)
+}
 
 // MockLogTreeTX is a mock of LogTreeTX interface
 type MockLogTreeTX struct {
@@ -482,6 +487,18 @@ func (m *MockLogTreeTX) EXPECT() *MockLogTreeTXMockRecorder {
 	return m.recorder
 }
 
+// AddInProgressTransaction mocks base method
+func (m *MockLogTreeTX) AddInProgressTransaction(arg0 context.Context, arg1 *userTypes.InProgressTransactionData) error {
+	ret := m.ctrl.Call(m, "AddInProgressTransaction", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddInProgressTransaction indicates an expected call of AddInProgressTransaction
+func (mr *MockLogTreeTXMockRecorder) AddInProgressTransaction(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddInProgressTransaction", reflect.TypeOf((*MockLogTreeTX)(nil).AddInProgressTransaction), arg0, arg1)
+}
+
 // AddSequencedLeaves mocks base method
 func (m *MockLogTreeTX) AddSequencedLeaves(arg0 context.Context, arg1 []*trillian.LogLeaf, arg2 time.Time) ([]*trillian.QueuedLogLeaf, error) {
 	ret := m.ctrl.Call(m, "AddSequencedLeaves", arg0, arg1, arg2)
@@ -500,47 +517,6 @@ func (m *MockLogTreeTX) AddToUserMap(arg0 context.Context, arg1 *userTypes.MapCo
 	ret := m.ctrl.Call(m, "AddToUserMap", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
-}
-
-func (m *MockLogTreeTX) GetQueuedLeavesRange(arg0 context.Context, arg1 int, arg2 int, arg3 time.Time) ([]*trillian.LogLeaf, []interface{}, error) {
-	ret := m.ctrl.Call(m, "GetQueuedLeavesRange", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].([]*trillian.LogLeaf)
-	ret1, _ := ret[1].([]interface{})
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-func (m *MockLogTreeTX) RemoveQueuedLeaves(arg0 context.Context, arg1 interface{}) error {
-	ret := m.ctrl.Call(m, "RemoveQueuedLeaves", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (mr *MockLogTreeTXMockRecorder) GetQueuedLeavesRange(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQueuedLeavesRange", reflect.TypeOf((*MockLogTreeTX)(nil).GetQueuedLeavesRange), arg0, arg1, arg2, arg3)
-}
-
-func (mr *MockLogTreeTXMockRecorder) RemoveQueuedLeaves(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveQueuedLeaves", reflect.TypeOf((*MockLogTreeTX)(nil).RemoveQueuedLeaves), arg0, arg1)
-}
-
-func (m* MockLogTreeTX) AddInProgressTransaction(arg0 context.Context, arg1 *userTypes.InProgressTransactionData) error {
-	ret := m.ctrl.Call(m, "AddInProgressTransaction", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (m* MockLogTreeTX) DeleteInProgressTransaction(arg0 context.Context, arg1 int64, arg2 int64) error {
-	ret := m.ctrl.Call(m, "DeleteInProgressTransaction", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (m* MockLogTreeTX) GetInProgressTransaction(arg0 context.Context, arg1 int64, arg2 int64) (*userTypes.InProgressTransactionData, error) {
-	ret := m.ctrl.Call(m, "GetInProgressTransaction", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*userTypes.InProgressTransactionData)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
 }
 
 // AddToUserMap indicates an expected call of AddToUserMap
@@ -584,6 +560,18 @@ func (mr *MockLogTreeTXMockRecorder) DeleteFromUserMap(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromUserMap", reflect.TypeOf((*MockLogTreeTX)(nil).DeleteFromUserMap), arg0, arg1)
 }
 
+// DeleteInProgressTransaction mocks base method
+func (m *MockLogTreeTX) DeleteInProgressTransaction(arg0 context.Context, arg1, arg2 int64) error {
+	ret := m.ctrl.Call(m, "DeleteInProgressTransaction", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteInProgressTransaction indicates an expected call of DeleteInProgressTransaction
+func (mr *MockLogTreeTXMockRecorder) DeleteInProgressTransaction(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteInProgressTransaction", reflect.TypeOf((*MockLogTreeTX)(nil).DeleteInProgressTransaction), arg0, arg1, arg2)
+}
+
 // DequeueLeaves mocks base method
 func (m *MockLogTreeTX) DequeueLeaves(arg0 context.Context, arg1 int, arg2 time.Time) ([]*trillian.LogLeaf, error) {
 	ret := m.ctrl.Call(m, "DequeueLeaves", arg0, arg1, arg2)
@@ -595,6 +583,19 @@ func (m *MockLogTreeTX) DequeueLeaves(arg0 context.Context, arg1 int, arg2 time.
 // DequeueLeaves indicates an expected call of DequeueLeaves
 func (mr *MockLogTreeTXMockRecorder) DequeueLeaves(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DequeueLeaves", reflect.TypeOf((*MockLogTreeTX)(nil).DequeueLeaves), arg0, arg1, arg2)
+}
+
+// GetInProgressTransaction mocks base method
+func (m *MockLogTreeTX) GetInProgressTransaction(arg0 context.Context, arg1, arg2 int64) (*userTypes.InProgressTransactionData, error) {
+	ret := m.ctrl.Call(m, "GetInProgressTransaction", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*userTypes.InProgressTransactionData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetInProgressTransaction indicates an expected call of GetInProgressTransaction
+func (mr *MockLogTreeTXMockRecorder) GetInProgressTransaction(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInProgressTransaction", reflect.TypeOf((*MockLogTreeTX)(nil).GetInProgressTransaction), arg0, arg1, arg2)
 }
 
 // GetKeys mocks base method
@@ -662,6 +663,20 @@ func (mr *MockLogTreeTXMockRecorder) GetMerkleNodes(arg0, arg1, arg2 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMerkleNodes", reflect.TypeOf((*MockLogTreeTX)(nil).GetMerkleNodes), arg0, arg1, arg2)
 }
 
+// GetQueuedLeavesRange mocks base method
+func (m *MockLogTreeTX) GetQueuedLeavesRange(arg0 context.Context, arg1, arg2 int, arg3 time.Time) ([]*trillian.LogLeaf, []interface{}, error) {
+	ret := m.ctrl.Call(m, "GetQueuedLeavesRange", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*trillian.LogLeaf)
+	ret1, _ := ret[1].([]interface{})
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetQueuedLeavesRange indicates an expected call of GetQueuedLeavesRange
+func (mr *MockLogTreeTXMockRecorder) GetQueuedLeavesRange(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQueuedLeavesRange", reflect.TypeOf((*MockLogTreeTX)(nil).GetQueuedLeavesRange), arg0, arg1, arg2, arg3)
+}
+
 // GetSequencedLeafCount mocks base method
 func (m *MockLogTreeTX) GetSequencedLeafCount(arg0 context.Context) (int64, error) {
 	ret := m.ctrl.Call(m, "GetSequencedLeafCount", arg0)
@@ -724,6 +739,18 @@ func (m *MockLogTreeTX) ReadRevision(arg0 context.Context) (int64, error) {
 // ReadRevision indicates an expected call of ReadRevision
 func (mr *MockLogTreeTXMockRecorder) ReadRevision(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadRevision", reflect.TypeOf((*MockLogTreeTX)(nil).ReadRevision), arg0)
+}
+
+// RemoveQueuedLeaves mocks base method
+func (m *MockLogTreeTX) RemoveQueuedLeaves(arg0 context.Context, arg1 interface{}) error {
+	ret := m.ctrl.Call(m, "RemoveQueuedLeaves", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveQueuedLeaves indicates an expected call of RemoveQueuedLeaves
+func (mr *MockLogTreeTXMockRecorder) RemoveQueuedLeaves(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveQueuedLeaves", reflect.TypeOf((*MockLogTreeTX)(nil).RemoveQueuedLeaves), arg0, arg1)
 }
 
 // Rollback mocks base method

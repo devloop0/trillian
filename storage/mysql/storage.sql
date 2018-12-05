@@ -147,6 +147,7 @@ CREATE TABLE IF NOT EXISTS Unsequenced(
   -- for batched deletes from the table when trillian_log_server and trillian_log_signer are
   -- built with the batched_queue tag.
   QueueID VARBINARY(32) DEFAULT NULL UNIQUE,
+  TransactionID 	BIGINT NOT NULL,
   PRIMARY KEY (TreeId, Bucket, QueueTimestampNanos, LeafIdentityHash)
 );
 

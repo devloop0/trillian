@@ -419,6 +419,8 @@ message LogLeaf {
     // Output only. The time at which this leaf was integrated into the tree.
     // This value will be determined and set by the LogSigner.
     google.protobuf.Timestamp integrate_timestamp = 7;
+
+    int64 transaction_id = 8;
 }
 
 // A consistency or inclusion proof for a Merkle tree. Output only.

@@ -547,6 +547,7 @@ E.g., in a CT personality multiple `add-chain` calls for an identical certificat
 Continuing the CT example, for a CT mirror personality (which must allow dupes since the source log could contain them), the part of the personality which fetches and submits the entries might set `leaf_identity_hash` to `H(leaf_index||cert)`. TODO(pavelkalinnikov): Consider instead using `H(cert)` and allowing identity hash dupes in `PREORDERED_LOG` mode, for it can later be upgraded to `LOG` which will need to correctly detect duplicates with older entries when new ones get queued. |
 | queue_timestamp | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | Output only. The time at which this leaf was passed to `QueueLeaves`. This value will be determined and set by the LogServer. Equals zero if the entry was submitted without queuing. |
 | integrate_timestamp | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | Output only. The time at which this leaf was integrated into the tree. This value will be determined and set by the LogSigner. |
+| transaction_id | [int64](#int64) |  |  |
 
 
 

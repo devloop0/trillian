@@ -28,7 +28,6 @@ import (
 	"github.com/google/trillian/types"
 	"github.com/google/trillian/util"
 	"github.com/google/trillian/user_map"
-	"github.com/google/trillian/userTypes"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -181,9 +180,8 @@ func (t *TrillianLogRPCServer) UserReadLeaves(ctx context.Context, req *trillian
 		return nil, err
 	}
 	hashes := make ([][]byte, 0)
-	transactionId := UserTypes.GenerateTransactionId()
 	for _, key := range keys {
-		leaf_data, err := UserMap.PrepareLeafData (key, req.DeviceId, transactionId)
+		leaf_data, err := UserMap.PrepareLeafData (key, req.DeviceId)
 		hash, err := hasher.HashLeaf (leaf_data)
 		if err != nil {
 			return nil, err

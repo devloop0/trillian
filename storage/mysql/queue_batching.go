@@ -38,14 +38,14 @@ const (
 			AND Bucket=0
 			AND QueueTimestampNanos<=?
 			ORDER BY QueueTimestampNanos,LeafIdentityHash ASC LIMIT ?`
-	selectQueuedLeavesOffsetSQL = `SELECT LeafIdentityHash,MerkleLeafHash,QueueTimestampNanos,QueueID
+	selectQueuedLeavesOffsetSQL = `SELECT LeafIdentityHash,MerkleLeafHash,QueueTimestampNanos,QueueID,TransactionID
 		FROM Unsequenced
 		WHERE TreeID=?
 		AND Bucket=0
 		AND QueueTimestampNanos<=?
 		ORDER BY QueueTimestampNanos,LeafIdentityHash ASC
 		LIMIT ? OFFSET ?`
-	insertUnsequencedEntrySQL = `INSERT INTO Unsequenced(TreeId,Bucket,LeafIdentityHash,MerkleLeafHash,QueueTimestampNanos,QueueID) VALUES(?,0,?,?,?,?)`
+	insertUnsequencedEntrySQL = `INSERT INTO Unsequenced(TreeId,Bucket,LeafIdentityHash,MerkleLeafHash,QueueTimestampNanos,QueueID,TransactionID) VALUES(?,0,?,?,?,?,?)`
 	deleteUnsequencedSQL      = "DELETE FROM Unsequenced WHERE QueueID IN (<placeholder>)"
 )
 
@@ -53,6 +53,35 @@ type dequeuedLeaf []byte
 
 func dequeueInfo(_ []byte, queueID []byte) dequeuedLeaf {
 	return dequeuedLeaf(queueID)
+}
+
+func (t *logTreeTX) dequeueTransactionLeaf(rows *sql.Rows) (*trillian.LogLeaf, dequeuedLeaf, error) {
+	var leafIDHash []byte
+	var merkleHash []byte
+	var queueTimestamp int64
+	var queueID []byte
+	var transactionID int64
+
+	err := rows.Scan(&leafIDHash, &merkleHash, &queueTimestamp, &queueID, &transactionID)
+	if err != nil {
+		glog.Warningf("Error scanning work rows: %s", err)
+		return nil, nil, err
+	}
+
+	queueTimestampProto, err := ptypes.TimestampProto(time.Unix(0, queueTimestamp))
+	if err != nil {
+		return nil, dequeuedLeaf{}, fmt.Errorf("got invalid queue timestamp: %v", err)
+	}
+	// Note: the LeafData and ExtraData being nil here is OK as this is only used by the
+	// sequencer. The sequencer only writes to the SequencedLeafData table and the client
+	// supplied data was already written to LeafData as part of queueing the leaf.
+	leaf := &trillian.LogLeaf{
+		LeafIdentityHash: leafIDHash,
+		MerkleLeafHash:   merkleHash,
+		QueueTimestamp:   queueTimestampProto,
+		TransactionId: transactionID,
+	}
+	return leaf, dequeueInfo(leafIDHash, queueID), nil
 }
 
 func (t *logTreeTX) dequeueLeaf(rows *sql.Rows) (*trillian.LogLeaf, dequeuedLeaf, error) {
