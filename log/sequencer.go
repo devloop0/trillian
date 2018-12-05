@@ -478,12 +478,12 @@ func (s *logSequencingTask) fetchTransaction(ctx context.Context, tree *trillian
 			return nil, 0, err
 		}
 		seqDequeueLatency.Observe(util.SecondsSince(s.timeSource, start), s.label)
-
-		dequeueIDs, ok := leafIDs.([][]byte)
+		dequeueIDsPtr, ok := leafIDs.(*[][]byte)
 		if !ok {
-			return nil, 0, errors.New ("Unable to fetch the dequeueIDs")
+			str := fmt.Sprintf("%T\n", leafIDs)
+			return nil, 0, errors.New (str)
 		}
-
+		dequeueIDs := *dequeueIDsPtr
 		// Place the updated leaves in the correct location
 		err = updateTransactionMemory (transactionCache, leafNodes, dequeueIDs)
 

@@ -579,7 +579,7 @@ func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, startOffset int, l
 
 	leaves := make([]*trillian.LogLeaf, 0, limit)
 	dq := make([]dequeuedLeaf, 0, limit)
-	rows, err := stx.QueryContext(ctx, t.treeID, cutoff.UnixNano(), startOffset, limit)
+	rows, err := stx.QueryContext(ctx, t.treeID, cutoff.UnixNano(), limit, startOffset)
 	if err != nil {
 		glog.Warningf("Failed to select rows for work: %s", err)
 		return nil, nil, err
@@ -594,7 +594,7 @@ func (t *logTreeTX) GetQueuedLeavesRange(ctx context.Context, startOffset int, l
 		}
 
 		if len(leaf.LeafIdentityHash) != t.hashSizeBytes {
-			return nil, nil, errors.New("dequeued a leaf with incorrect hash size")
+			return nil, nil, errors.New("Error with the hash")
 		}
 
 		leaves = append(leaves, leaf)
