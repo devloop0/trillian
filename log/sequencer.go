@@ -34,6 +34,7 @@ import (
 	"github.com/google/trillian/storage"
 	"github.com/google/trillian/types"
 	"github.com/google/trillian/util"
+	"github.com/google/trillian/networkSimulator"
 
 	tcrypto "github.com/google/trillian/crypto"
 )

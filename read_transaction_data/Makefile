@@ -7,7 +7,7 @@ delete: delete_log_id
 clean: delete
 	killall ../trillian_log_signer
 	killall ../trillian_log_server
-	rm -f data/transaction_data data/logid
+	rm -f data/*
 	rm read_transaction_data
 
 setup: rebuild
@@ -28,7 +28,7 @@ delete_log_id:
 
 generate_data:
 	sleep 2
-	../scripts/transactiongen.py `cat data/logid` > data/transaction_data
+	../scripts/transactiongen.py `cat data/logid` --output_path=data/
 
 rebuild:
 	cd .. && go build -tags='batched_queue' ./server/trillian_log_server && go build -tags='batched_queue' ./server/trillian_log_signer

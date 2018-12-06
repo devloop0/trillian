@@ -54,6 +54,10 @@ type dequeuedLeaf struct {
 	leafIdentityHash    []byte
 }
 
+func (t *logTreeTX) dequeueTransactionLeaf(rows *sql.Rows) (*trillian.LogLeaf, dequeuedLeaf, error) {
+	return nil, dequeuedLeaf{}, errors.New("Unimplemented")
+}
+
 func dequeueInfo(leafIDHash []byte, queueTimestamp int64) dequeuedLeaf {
 	return dequeuedLeaf{queueTimestampNanos: queueTimestamp, leafIdentityHash: leafIDHash}
 }

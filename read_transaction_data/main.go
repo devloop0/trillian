@@ -19,7 +19,7 @@ import (
 )
 
 const chunkSize int64 = 1024
-const initializeFile string = "data/transaction_data"
+const initializeFile string = "data/init_tree"
 
 const txRead int64 = 1
 const txWrite int64 = 2

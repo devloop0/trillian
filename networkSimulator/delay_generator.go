@@ -69,7 +69,7 @@ func GenerateNetworkDelay() {
 	GenerateDelays(4)
 }
 
-func GenerateSQLWriteDelay() {
+func GenerateWriteSQLDelay() {
 	if !useDelay {
 		return
 	}
@@ -79,7 +79,7 @@ func GenerateSQLWriteDelay() {
 	GenerateDelays(38)
 }
 
-func GenerateSQLReadDelay() {
+func GenerateReadSQLDelay() {
 	if !useDelay {
 		return
 	}
