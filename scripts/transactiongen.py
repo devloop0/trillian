@@ -204,6 +204,7 @@ def main (tid):
         for trxn in init_trxns:
             trxn.print_transaction_as_row (f)
     for i in range (NUM_PARTITIONS):
+        reset_state ()
         trxns = generate_transaction_list (t, i)
         with open(OUTPUT_PATH + CLIENT_FILE + str(i), "w") as f:
             for trxn in trxns:
