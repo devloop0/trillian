@@ -163,12 +163,12 @@ func (t *logTreeTX) removeSequencedLeaves(ctx context.Context, queueIDs []dequeu
 	}
 	stx := t.tx.StmtContext(ctx, tmpl)
 	args := make([]interface{}, len(queueIDs))
-	glog.Warningf("removeSequencedLeaves queueIDs start")
+	//glog.Warningf("removeSequencedLeaves queueIDs start")
 	for i, q := range queueIDs {
 		args[i] = []byte(q)
-		glog.Warningf("removeSequencedLeaves queueIDs %v", args[i])
+		//glog.Warningf("removeSequencedLeaves queueIDs %v", args[i])
 	}
-	glog.Warningf("removeSequencedLeaves queueIDs end")
+	//glog.Warningf("removeSequencedLeaves queueIDs end")
 	result, err := stx.ExecContext(ctx, args...)
 	if err != nil {
 		// Error is handled by checkResultOkAndRowCountIs() below

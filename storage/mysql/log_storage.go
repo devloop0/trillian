@@ -36,7 +36,6 @@ import (
 	"github.com/google/trillian/storage/cache"
 	"github.com/google/trillian/types"
 	"github.com/google/trillian/userTypes"
-	"github.com/google/trillian/networkSimulator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

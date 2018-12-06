@@ -121,7 +121,7 @@ func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, t
 				return err;
 			}
 		}
-		time.Sleep (10 * time.Millisecond)
+		//time.Sleep (10 * time.Millisecond)
 	}
 	return nil
 }
