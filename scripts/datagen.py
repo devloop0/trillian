@@ -59,9 +59,12 @@ class Tree:
     def update_pk (self, user_id, oldpk, newpk):
         user = self.find_user (user_id)
         nodes = user.get_nodes ()
+        ids = []
         for node in nodes:
             if node.get_key () == oldpk:
                 node.update_key (newpk)
+                ids.append (node.get_id ())
+        return ids
 
     """
         Finds the user with the given id. Returns None if the user

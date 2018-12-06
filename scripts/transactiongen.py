@@ -17,7 +17,9 @@ OUTPUT_PATH = "./"
 
 INIT_FILE = "/init_tree"
 
-CLIENT_FILE = "/client"
+CLIENT_FILE = "/transaction_client"
+
+TRILLIAN_FILE = "/trillian_client"
 
 NUM_PARTITIONS = 20 #Number of distinct files that make requests to the tree at one time.
                     #For simplicity we assume that each user has a unique portion of the
@@ -99,6 +101,7 @@ class Transaction:
     """
     def __init__ (self, t=None, partition_number=None):
         self.type = TransactionType.ERROR
+        self.trillian_additions = []
         if t is not None and partition_number is not None:
             self.tid = t.get_id ()
             self.type = TransactionType.ERROR
@@ -107,7 +110,7 @@ class Transaction:
             self.user, self.oldpk, self.id = t.get_random_leaf (i, j)
             if self.type == TransactionType.WRITE:
                 self.newpk = datagen.random_64s (datagen.KEY_SIZE)
-                t.update_pk (self.user, self.oldpk, self.newpk)
+                self.trillian_additions = t.update_pk (self.user, self.oldpk, self.newpk)
             else:
                 self.newpk = ""
 
@@ -154,6 +157,18 @@ class Transaction:
             error_and_exit ("Invalid transaction type.")
         else:
             f.write ("{},{},{},{},{},{}\n".format (self.type.value, self.tid, self.user, self.oldpk, self.id, self.newpk))
+
+
+    def print_trillian_transaction_as_row (self, f):
+        if self.type == TransactionType.ERROR:
+            error_and_exit ("Invalid transaction type.")
+        elif self.type == TransactionType.READ:
+            f.write ("{},{},{},{},{},{}\n".format (self.type.value, self.tid, self.user, self.oldpk, self.id, self.newpk))
+        else:
+            for device_id in self.trillian_additions:
+                f.write ("{},{},{},{},{},{}\n".format (self.type.value, self.tid, self.user, self.oldpk, device_id, self.newpk))
+
+
 
 
 
@@ -209,6 +224,9 @@ def main (tid):
         with open(OUTPUT_PATH + CLIENT_FILE + str(i), "w") as f:
             for trxn in trxns:
                 trxn.print_transaction_as_row (f)
+        with open(OUTPUT_PATH + TRILLIAN_FILE + str(i), "w") as f:
+            for trxn in trxns:
+                trxn.print_trillian_transaction_as_row (f)
 
 
 def handler (signum, frame):
