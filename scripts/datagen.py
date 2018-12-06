@@ -8,7 +8,7 @@ import sys
 """
 
 
-USER_COUNT = 15 #Number of distinct users to create. If None users will be
+USER_COUNT = 1000 #Number of distinct users to create. If None users will be
                  #created until the max leaf total is reached and the previous
                  #number of users will be used.
 
@@ -16,14 +16,11 @@ MAX_LEAF_COUNT = None #Maximum number of leaves generated for the dataset. If
                       #the value is None then the number of leaves will depend
                       #solely on the distribution for the user count.
 
-LAMBDA = 15 #1 less than the Mean number of leaves per user. Number of a leaves
+LAMBDA = 10 #1 less than the Mean number of leaves per user. Number of a leaves
             #for a user is sampled from a poisson distribution with mean lambda
             #and then 1 is added so all users have at least 1 leaf.
 
-SPLIT_USER = [0.1, 0.4, 0.8, 1.0] #Provides an upper bound on the value of the
-                                  #public each identifier will use. All values
-                                  #must be strictly increasing and from 
-                                  #[0.0, 1.0] where the last value must be 1.0.
+LAMBDA_PK = 4 #Average number of public keys each user should have.
 
 UMAX_64 = int (np.power (2.0, 64))
 
@@ -121,8 +118,8 @@ class Tree:
         Selects a random leaf uniformly from the available leaves. Returns a
         tuple of the user, the public key, and the identifier.
     """
-    def get_random_leaf (self):
-        index = np.random.randint (low=0, high=self.counts[-1][1])
+    def get_random_leaf (self, i, j):
+        index = np.random.randint (low=self.counts[i][0], high=self.counts[j][1])
         user_num = self.count_search (index)
         user = self.users[user_num]
         leaf = user.nodes[index - self.counts[user_num][0]]
@@ -166,12 +163,14 @@ class User:
         self.nodes = []
         self.id = random_64s (ID_SIZE)
         pk  = []
-        for i in range (len (SPLIT_USER)):
+        self.pk_count = round (np.random.poisson (LAMBDA_PK)) + 1
+        parition = 1.0 / self.pk_count
+        for i in range (self.pk_count):
             pk.append (self.generate_key ())
         for c in range (count):
             key_select = np.random.random ()
             i = 0
-            while key_select >= SPLIT_USER[i]:
+            while key_select >= (i + 1) * parition:
                 i += 1
             self.nodes.append (Node (pk[i]))
 
