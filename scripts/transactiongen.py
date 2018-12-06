@@ -42,6 +42,8 @@ class WriteProbability (Enum):
     HIGH = 3
     VERY_HIGH = 4
 
+CURR_PROB = WriteProbability.VERY_LOW
+
 #Dict with probability for each setting
 WRITE_DICT = {WriteProbability.VERY_LOW: 0.05, WriteProbability.LOW: .15, WriteProbability.MEDIUM: .3, WriteProbability.HIGH: .55, WriteProbability.VERY_HIGH: .8}
 
@@ -52,15 +54,20 @@ CURR_STATE = TransactionType.READ #Variable that tells which Markov state the
                                   #likely or a write which allows for
                                   #simulating bursty write behavior.
 
-IS_BURSTY = False # Determines if writes should be very high when in 
+IS_BURSTY = False # Determines if writes should be very high when in the write state 
 
 WRITE_PROBABILITY =  [WRITE_DICT[WriteProbability.VERY_LOW], WRITE_DICT[WriteProbability.VERY_LOW]]  #Percentage of transactions that should be
                                  #writes for each of the two states. The first
                                  #state is the read state and the second is
                                  #the write state.
 
+def set_write_probabilities ():
+    WRITE_PROBABILITY[TransactionType.READ.value - 1] = WRITE_DICT[CURR_PROB]
+    WRITE_PROBABILITY[TransactionType.WRITE.value - 1] = WRITE_DICT[CURR_PROB]
+
+
 def set_bursty ():
-    WRITE_PROBABILITY[TrasactionType.WRITE - 1] = WRITE_DICT[WriteProbability.VERY_HIGH]
+    WRITE_PROBABILITY[TransactionType.WRITE.value - 1] = WRITE_DICT[WriteProbability.VERY_HIGH]
 
 def get_write_probability ():
     return WRITE_PROBABILITY [CURR_STATE.value - 1]
@@ -231,8 +238,23 @@ if __name__ == '__main__':
     parser.add_argument ("--lambda_pk", nargs="?", type=int, dest="lambda_pk",
             const=True, default=4, help="Determines the average number of \
                     pks each user should have.")
+    parser.add_argument ("--write_frequency", nargs="?", type=str, dest="write_frequency",
+            const=True, default="vl", help="Determines how often writes should occur.")
     parser.add_argument ("tid", type=int, help="The id for the tree being operated on.")
     items = parser.parse_args ()
+    if items.write_frequency == "l":
+        CURR_PROB = WriteProbability.LOW
+    elif items.write_frequency == "m":
+        CURR_PROB = WriteProbability.MEDIUM
+    elif items.write_frequency == "h":
+        CURR_PROB = WriteProbability.HIGH
+    elif items.write_frequency == "vh":
+        CURR_PROB = WriteProbability.VERY_HIGH
+    else:
+        CURR_PROB = WriteProbability.VERY_LOW
+
+    set_write_probabilities ()
+
     IS_BURSTY = items.bursty
     if IS_BURSTY:
         set_bursty ()
