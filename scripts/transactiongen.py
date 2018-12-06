@@ -13,7 +13,6 @@ import sys, datagen, argparse, signal, os
     identifier.
 """
 
-<<<<<<< HEAD
 OUTPUT_PATH = "./"
 
 INIT_FILE = "/init_tree"
@@ -55,7 +54,6 @@ CURR_STATE = TransactionType.READ #Variable that tells which Markov state the
                                   #likely or a write which allows for
                                   #simulating bursty write behavior.
 
-<<<<<<< HEAD
 IS_BURSTY = False # Determines if writes should be very high when in the write state 
 
 WRITE_PROBABILITY =  [WRITE_DICT[WriteProbability.VERY_LOW], WRITE_DICT[WriteProbability.VERY_LOW]]  #Percentage of transactions that should be
