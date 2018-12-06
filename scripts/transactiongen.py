@@ -238,7 +238,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser (description="Initialize a trillian tree \
             and initialize a series of transactions for many clients to simultaneously \
             run on the tree.")
-    parser.add_argument ("--bursty", dest="bursty", action="store_const", const=True,
+    parser.add_argument ("--bursty", dest="bursty", nargs="?", type=bool, const=True,
             default=False, help="Determines if transactions to the write state \
             should result in many consecutive writes. Burstiness will not carry \
             over across users.")
