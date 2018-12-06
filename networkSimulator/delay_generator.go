@@ -5,9 +5,11 @@ import (
 	"time"
 )
 
+const useDelay bool = false
+
 const burstyBehavior bool = true
 
-const meanDelayMs float64 = 100
+const meanDelayMs float64 = 1
 var networkDelaySource distuv.Poisson = distuv.Poisson{Lambda: meanDelayMs}
 
 const networkDropProb float64 = 0.0001
@@ -55,4 +57,34 @@ func GenerateDelays(n uint64) {
 	for i := uint64(0); i < n; i += 1 {
 		GenerateDelay();
 	}
+}
+
+func GenerateNetworkDelay() {
+	if !useDelay {
+		return
+	}
+	if (DropPacket()) {
+		GenerateDelays(4)
+	}
+	GenerateDelays(4)
+}
+
+func GenerateSQLWriteDelay() {
+	if !useDelay {
+		return
+	}
+	if DropPacket() {
+		GenerateDelays(38)
+	}
+	GenerateDelays(38)
+}
+
+func GenerateSQLReadDelay() {
+	if !useDelay {
+		return
+	}
+	if DropPacket() {
+		GenerateDelays(3)
+	}
+	GenerateDelays(3)
 }

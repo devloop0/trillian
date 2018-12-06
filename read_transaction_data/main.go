@@ -67,24 +67,42 @@ func readTransactionData(initializeFile string) ([]tx, error) {
 
 func writeTransactions(ctx context.Context, client trillian.TrillianLogClient, transactions []tx) error {
 	for _, tx_data := range transactions {
-		if tx_data.txType != txWrite {
-			break
-		}
 		if !useTrillianAPI {
-			q := &trillian.UserWriteLeafRequest{LogId: tx_data.logId, UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, DeviceId: tx_data.deviceId, NewPublicKey: tx_data.newPublicKey}
-			r, err := client.UserWriteLeaves(ctx, q)
-			NetworkSimulator.GenerateDelay()
-			if err != nil {
-				log.Fatal (err)
-				return err
-			}
-			for _, leaf := range (r.Leaves.QueuedLeaves) {
-				c := codes.Code(leaf.GetStatus().GetCode())
-				if c != codes.OK && c != codes.AlreadyExists {
+			if tx_data.txType == txWrite {
+				q := &trillian.UserWriteLeafRequest{
+					LogId: tx_data.logId,
+					UserId: tx_data.userId,
+					OldPublicKey: tx_data.oldPublicKey,
+					DeviceId: tx_data.deviceId,
+					NewPublicKey: tx_data.newPublicKey,
+				}
+				r, err := client.UserWriteLeaves(ctx, q)
+				if err != nil {
+					log.Fatal (err)
+					return err
+				}
+				for _, leaf := range (r.Leaves.QueuedLeaves) {
+					c := codes.Code(leaf.GetStatus().GetCode())
+					if c != codes.OK && c != codes.AlreadyExists {
+						return err
+					}
+				}
+			} else if tx_data.txType == txRead {
+				q := &trillian.UserReadLeafRequest{
+					LogId: tx_data.logId,
+					UserId: tx_data.userId,
+					DeviceId: tx_data.deviceId,
+				}
+				_, err := client.UserReadLeaves(ctx, q)
+				if err != nil {
+					log.Fatal(err)
 					return err
 				}
 			}
 		} else {
+			if tx_data.txType != txWrite {
+				break
+			}
 			data := UserTypes.UserData{UserId: tx_data.userId, OldPublicKey: tx_data.oldPublicKey, DeviceId: tx_data.deviceId, NewPublicKey: tx_data.newPublicKey}
 			j, err := json.Marshal(data)
 			if err != nil {

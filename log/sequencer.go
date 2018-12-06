@@ -378,7 +378,7 @@ func extractCompletedTransactions(ctx context.Context, tree *trillian.Tree, tran
 	var trxnIDs []int64
 	for i := 0; i < len (transactionCache.Transactions) && limit > 0; {
 		transaction := transactionCache.Transactions[i]
-		glog.Warningf("extractCompletedTransactions: Transaction %v", transaction)
+		//glog.Warningf("extractCompletedTransactions: Transaction %v", transaction)
 		if transaction.Capacity == 0 {
 			data, err := s.tx.GetInProgressTransaction (ctx, tree.TreeId, transaction.TrxnID)
 			if err != nil {
@@ -761,6 +761,7 @@ func (s Sequencer) IntegrateTransactionBatch(ctx context.Context, tree *trillian
 	if err != nil {
 		return 0, err
 	}
+	NetworkSimulator.GenerateWriteSQLDelay()
 
 	// Let quota.Manager know about newly-sequenced entries.
 	// All possibly influenced quotas are replenished: {Tree/Global, Read/Write}.
@@ -947,6 +948,7 @@ func (s Sequencer) IntegrateBatch(ctx context.Context, tree *trillian.Tree, limi
 	if err != nil {
 		return 0, err
 	}
+	NetworkSimulator.GenerateWriteSQLDelay()
 
 	// Let quota.Manager know about newly-sequenced entries.
 	// All possibly influenced quotas are replenished: {Tree/Global, Read/Write}.
